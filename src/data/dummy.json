@@ -1,0 +1,46 @@
+
+{
+  "user": {
+    "id": "user-cokecancook",
+    "name": "cokecancook",
+    "plan": "premium"
+  },
+  "balance": 8642.69,
+  "placedBets": [
+    {
+      "id": "bet-1",
+      "gameDate": "2024-03-10",
+      "homeTeam": "Los Angeles Lakers",
+      "awayTeam": "Golden State Warriors",
+      "betAmount": 50,
+      "odds": 1.85,
+      "betWinnerTeam": "Los Angeles Lakers",
+      "betResult": "won",
+      "betGain": 42.50,
+      "betDate": "2024-03-09"
+    },
+    {
+      "id": "bet-2",
+      "gameDate": "2024-03-12",
+      "homeTeam": "Boston Celtics",
+      "awayTeam": "Milwaukee Bucks",
+      "betAmount": 100,
+      "odds": 2.10,
+      "betWinnerTeam": "Milwaukee Bucks",
+      "betResult": "lost",
+      "betGain": -100,
+      "betDate": "2024-03-11"
+    },
+    {
+      "id": "bet-3",
+      "gameDate": "2024-03-15",
+      "homeTeam": "Denver Nuggets",
+      "awayTeam": "Phoenix Suns",
+      "betAmount": 75,
+      "odds": 1.90,
+      "betWinnerTeam": "Denver Nuggets",
+      "betResult": "pending",
+      "betDate": "2024-03-14"
+    }
+  ]
+}
