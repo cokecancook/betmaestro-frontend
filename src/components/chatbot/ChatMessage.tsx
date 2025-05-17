@@ -2,8 +2,8 @@
 "use client";
 
 import type React from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'; // Removed AvatarImage as it's not used
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'; // CardDescription not used
 import type { ChatMessage as ChatMessageType, GenerateBettingStrategyOutput } from '@/types';
 import { Bot, User, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -24,7 +24,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onOptionClick }) => 
       <CardContent className="space-y-3">
         <div>
           <h4 className="font-semibold text-foreground">Strategy Description:</h4>
-          <p className="text-sm text-muted-foreground">{strategy.strategyDescription}</p>
+          <p className="text-sm text-muted-foreground whitespace-pre-wrap">{strategy.strategyDescription}</p>
         </div>
         <div>
           <h4 className="font-semibold text-foreground">Suggested Bets:</h4>
@@ -36,16 +36,16 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onOptionClick }) => 
         </div>
         <div>
           <h4 className="font-semibold text-foreground">Risk Assessment:</h4>
-          <p className="text-sm text-muted-foreground">{strategy.riskAssessment}</p>
+          <p className="text-sm text-muted-foreground whitespace-pre-wrap">{strategy.riskAssessment}</p>
         </div>
       </CardContent>
     </Card>
   );
 
   return (
-    <div className={`flex items-end space-x-3 ${isAI ? '' : 'justify-end'}`}>
+    <div className={`flex items-end space-x-3 ${isAI ? '' : 'justify-end'} mb-4`}> {/* Added mb-4 for spacing */}
       {isAI && (
-        <Avatar className="h-8 w-8 shrink-0">
+        <Avatar className="h-8 w-8 shrink-0 self-start mt-1"> {/* Align avatar better if message is long */}
           <AvatarFallback className="bg-primary text-primary-foreground">
             <Bot size={20} />
           </AvatarFallback>
@@ -66,14 +66,14 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onOptionClick }) => 
             {message.text && <p className="text-sm whitespace-pre-wrap">{message.text}</p>}
             {message.strategy && renderStrategy(message.strategy)}
             {message.options && message.options.length > 0 && (
-              <div className="mt-2 flex flex-wrap gap-2">
+              <div className="mt-3 flex flex-wrap gap-2"> {/* Increased mt slightly */}
                 {message.options.map((option) => (
                   <Button
                     key={option.value}
                     variant={isAI ? "outline" : "secondary"}
                     size="sm"
                     onClick={() => onOptionClick && onOptionClick(option.value)}
-                    className={isAI ? "border-primary text-primary hover:bg-primary/10" : ""}
+                    className={isAI ? "border-primary text-primary hover:bg-primary/10" : "bg-primary-foreground/20 hover:bg-primary-foreground/30 text-primary"}
                   >
                     {option.label}
                   </Button>
@@ -84,7 +84,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onOptionClick }) => 
         )}
       </div>
       {!isAI && (
-        <Avatar className="h-8 w-8 shrink-0">
+        <Avatar className="h-8 w-8 shrink-0 self-start mt-1"> {/* Align avatar better */}
           <AvatarFallback className="bg-accent text-accent-foreground">
             <User size={20} />
           </AvatarFallback>
@@ -95,3 +95,4 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onOptionClick }) => 
 };
 
 export default ChatMessage;
+
