@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import BetMaestroLogo from '@/components/BetMaestroLogo';
 import { Button } from '@/components/ui/button';
@@ -44,8 +44,8 @@ export default function LoginPage() {
           <CardDescription>Your AI-Powered Betting Assistant</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <Button 
-            className="w-full text-lg py-6 bg-primary hover:bg-primary/90" 
+          <Button
+            className="w-full text-lg py-6 bg-primary hover:bg-primary/90"
             onClick={() => handleLogin(false)}
             disabled={isSubmitting}
             aria-label="Login to your BetMaestro account"
@@ -53,8 +53,8 @@ export default function LoginPage() {
             {isSubmitting && !useAppContext().useDummyData ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : null}
             Login
           </Button>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             className="w-full text-lg py-6 border-primary text-primary hover:bg-primary/10"
             onClick={() => handleLogin(true)}
             disabled={isSubmitting}
