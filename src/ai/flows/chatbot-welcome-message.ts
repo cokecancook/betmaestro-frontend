@@ -1,3 +1,4 @@
+
 // src/ai/flows/chatbot-welcome-message.ts
 'use server';
 
@@ -32,7 +33,13 @@ const prompt = ai.definePrompt({
   name: 'chatBotWelcomeMessagePrompt',
   input: {schema: ChatBotWelcomeMessageInputSchema},
   output: {schema: ChatBotWelcomeMessageOutputSchema},
-  prompt: `Welcome, {{{userName}}}! Your current wallet balance is ${{{walletBalance}}}. How much would you like to bet today?`,
+  prompt: `You are a friendly BetMaestro assistant.
+User's name: {{{userName}}}
+User's wallet balance: {{{walletBalance}}} EUR
+
+Generate a personalized welcome message that includes the user's name.
+Then, generate an initial question asking the user how much they would like to bet today.
+Your response must be an object with a 'welcomeMessage' field and an 'initialQuestion' field.`,
 });
 
 const chatBotWelcomeMessageFlow = ai.defineFlow(
@@ -42,12 +49,15 @@ const chatBotWelcomeMessageFlow = ai.defineFlow(
     outputSchema: ChatBotWelcomeMessageOutputSchema,
   },
   async input => {
-    const {output} = await prompt({
-      ...input,
-    });
-    return {
-      welcomeMessage: `Welcome, ${input.userName}!`, // Custom welcome message
-      initialQuestion: `How much would you like to bet today?`, // The question
-    };
+    const {output} = await prompt(input);
+    if (!output) {
+      // Fallback if LLM fails to provide structured output
+      console.error("Chatbot welcome message flow did not receive expected output from prompt for user:", input.userName);
+      return {
+        welcomeMessage: `Welcome, ${input.userName}! I'm ready to assist.`,
+        initialQuestion: `How much would you like to bet today?`,
+      };
+    }
+    return output;
   }
 );
