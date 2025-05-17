@@ -38,15 +38,6 @@ export default function SplashPage() {
     <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4 animate-fadeIn">
       <BetMaestroLogo className="text-6xl mb-8 drop-shadow-lg" />
       <p className="text-xl text-foreground">Your AI Betting Assistant</p>
-      <style jsx>{`
-        .animate-fadeIn {
-          animation: fadeIn 1s ease-in-out;
-        }
-        @keyframes fadeIn {
-          from { opacity: 0; transform: scale(0.95); }
-          to { opacity: 1; transform: scale(1); }
-        }
-      `}</style>
     </div>
   );
 }
