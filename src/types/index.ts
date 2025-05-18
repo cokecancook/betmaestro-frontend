@@ -12,6 +12,7 @@ export interface Bet {
   awayTeam: string;
   betAmount: number;
   odds: number;
+  house?: string; // Added house as optional
   betWinnerTeam: string;
   betResult?: 'won' | 'lost' | 'pending';
   betGain?: number;

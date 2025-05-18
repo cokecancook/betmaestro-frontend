@@ -121,6 +121,12 @@ export default function MyBetsPage() {
                     <span className="text-muted-foreground">Bet Amount:</span>
                     <span className="font-semibold">{formatCurrency(bet.betAmount)}</span>
                   </div>
+                  {bet.house && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">House:</span>
+                      <span>{bet.house}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Odds:</span>
                     <span>{bet.odds.toFixed(2)}</span>
@@ -153,3 +159,4 @@ export default function MyBetsPage() {
     </div>
   );
 }
+
