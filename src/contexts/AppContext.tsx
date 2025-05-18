@@ -24,6 +24,10 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
+const CHAT_MESSAGES_KEY = 'betMaestroChatMessages';
+const CHAT_STATE_KEY = 'betMaestroChatState';
+const CHAT_BET_AMOUNT_KEY = 'betMaestroCurrentBetAmount';
+
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [balance, setBalance] = useState<number>(0);
@@ -56,8 +60,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setIsLoading(false);
   }, []);
 
+  const clearChatStateFromLocalStorage = () => {
+    localStorage.removeItem(CHAT_MESSAGES_KEY);
+    localStorage.removeItem(CHAT_STATE_KEY);
+    localStorage.removeItem(CHAT_BET_AMOUNT_KEY);
+  };
+
   const login = useCallback(async (preview: boolean = false) => {
     setIsLoading(true);
+    clearChatStateFromLocalStorage(); // Clear chat state on new login
+
     if (preview) {
       const data: DummyData = dummyDataJson;
       setUser(data.user);
@@ -81,6 +93,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const logout = useCallback(() => {
     setIsLoading(true);
+    clearChatStateFromLocalStorage(); // Clear chat state on logout
+
     setUser(null);
     setBalance(0);
     setPlacedBets([]);

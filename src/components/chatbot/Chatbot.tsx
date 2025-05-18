@@ -25,6 +25,10 @@ type ChatState =
   | 'IDLE_AFTER_NO'
   | 'ERROR_GENERIC';
 
+const CHAT_MESSAGES_KEY = 'betMaestroChatMessages';
+const CHAT_STATE_KEY = 'betMaestroChatState';
+const CHAT_BET_AMOUNT_KEY = 'betMaestroCurrentBetAmount';
+
 const Chatbot: React.FC = () => {
   const { user, balance, addBet, updateBalance } = useAppContext();
   const { toast } = useToast();
@@ -33,6 +37,7 @@ const Chatbot: React.FC = () => {
   const [isAiTyping, setIsAiTyping] = useState(false);
   const [currentBetAmount, setCurrentBetAmount] = useState<number | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const [isRestored, setIsRestored] = useState(false);
 
   const addMessage = useCallback((sender: 'ai' | 'human', text?: string, strategy?: GenerateBettingStrategyOutput, options?: {label: string, value: string}[], isLoading?: boolean) => {
     setMessages(prev => [...prev, { id: uuidv4(), sender, text, strategy, options, isLoading }]);
@@ -49,9 +54,73 @@ const Chatbot: React.FC = () => {
     }
   }, [messages]);
 
+  // Load chat state from localStorage on mount
+  useEffect(() => {
+    const storedMessages = localStorage.getItem(CHAT_MESSAGES_KEY);
+    const storedChatState = localStorage.getItem(CHAT_STATE_KEY) as ChatState | null;
+    const storedBetAmount = localStorage.getItem(CHAT_BET_AMOUNT_KEY);
+
+    if (storedMessages) {
+      try {
+        const parsedMessages = JSON.parse(storedMessages).filter((m: ChatMessageType) => !m.isLoading);
+        setMessages(parsedMessages);
+
+        let activeChatState = storedChatState || 'GREETING';
+        const nonInteractiveStates: ChatState[] = ['PROCESSING_AMOUNT', 'PROCESSING_BET', 'ERROR_BALANCE', 'ERROR_GENERIC'];
+        
+        if (nonInteractiveStates.includes(activeChatState) || (activeChatState === 'GREETING' && parsedMessages.length > 0)) {
+            activeChatState = parsedMessages.length > 0 ? 'AWAITING_AMOUNT' : 'GREETING';
+            if (parsedMessages.some((m: ChatMessageType) => m.strategy)) {
+                activeChatState = 'AWAITING_CONFIRMATION';
+            }
+        }
+        setChatState(activeChatState);
+      } catch (e) {
+        console.error("Failed to parse chat messages from localStorage", e);
+        setMessages([]);
+        setChatState('GREETING');
+      }
+    } else {
+      setMessages([]); 
+      setChatState('GREETING');
+    }
+
+    if (storedBetAmount) {
+      try {
+        setCurrentBetAmount(JSON.parse(storedBetAmount));
+      } catch (e) {
+        console.error("Failed to parse current bet amount from localStorage", e);
+        setCurrentBetAmount(null);
+      }
+    }
+    setIsRestored(true);
+  }, []);
+
+  // Save messages to localStorage
+  useEffect(() => {
+    if (isRestored) {
+      const messagesToSave = messages.filter(m => !m.isLoading);
+      localStorage.setItem(CHAT_MESSAGES_KEY, JSON.stringify(messagesToSave));
+    }
+  }, [messages, isRestored]);
+
+  // Save chatState to localStorage
+  useEffect(() => {
+    if (isRestored) {
+      localStorage.setItem(CHAT_STATE_KEY, chatState);
+    }
+  }, [chatState, isRestored]);
+
+  // Save currentBetAmount to localStorage
+  useEffect(() => {
+    if (isRestored) {
+      localStorage.setItem(CHAT_BET_AMOUNT_KEY, JSON.stringify(currentBetAmount));
+    }
+  }, [currentBetAmount, isRestored]);
+
   // Initial greeting
-   useEffect(() => {
-    if (user && balance !== undefined) {
+  useEffect(() => {
+    if (user && balance !== undefined && isRestored) {
       if (messages.length === 0 && chatState === 'GREETING') { 
         setIsAiTyping(true);
         addMessage('ai', undefined, undefined, undefined, true); 
@@ -74,7 +143,7 @@ const Chatbot: React.FC = () => {
           .finally(() => setIsAiTyping(false));
       }
     }
-  }, [user, balance, addMessage, messages.length, chatState]);
+  }, [user, balance, addMessage, messages.length, chatState, isRestored]);
 
 
   const handleHumanMessage = async (text: string) => {
@@ -100,6 +169,7 @@ const Chatbot: React.FC = () => {
           addMessage('ai', `Your bet of ${amount}€ exceeds your wallet balance of ${balance}€. Please enter a smaller amount or recharge your wallet.`, undefined, [
             {label: "50€", value: "50"}, {label: "100€", value: "100"}, {label: "200€", value: "200"}
           ]);
+           setChatState('ERROR_BALANCE'); // Stay in a state where they can retry amount
         } else {
           setCurrentBetAmount(amount);
           setChatState('PROCESSING_AMOUNT'); 
@@ -170,33 +240,46 @@ const Chatbot: React.FC = () => {
         break;
 
       case 'IDLE_AFTER_NO':
-        if (text.toLowerCase() === 'new_bet' && user) {
+         if (text.toLowerCase() === 'new_bet' && user) {
            try {
-            removeAiTypingPlaceholder(); // Remove previous if any
-            setIsAiTyping(true); // Set typing for new operation
-            addMessage('ai', undefined, undefined, undefined, true); // New placeholder
+            removeAiTypingPlaceholder(); 
+            setIsAiTyping(true); 
+            addMessage('ai', undefined, undefined, undefined, true); 
             const response = await chatBotWelcomeMessage({ userName: user.name, walletBalance: balance });
-            setMessages(prev => prev.filter(m => !m.isLoading)); // Remove new placeholder
+            setMessages(prev => prev.filter(m => !m.isLoading)); 
             addMessage('ai', `${response.initialQuestion}`, undefined, [
               {label: "50€", value: "50"}, {label: "100€", value: "100"}, {label: "200€", value: "200"}
             ]);
             setChatState('AWAITING_AMOUNT');
           } catch (error) {
             console.error("Error starting new bet:", error);
-            setMessages(prev => prev.filter(m => !m.isLoading)); // Ensure placeholder removal on error
+            setMessages(prev => prev.filter(m => !m.isLoading)); 
             addMessage('ai', "I had trouble starting a new bet. Please try asking for a 'new bet' again.");
             setChatState('AWAITING_AMOUNT'); 
           } finally {
-            setIsAiTyping(false); // Ensure typing is false
+            setIsAiTyping(false); 
           }
         } else if (text.toLowerCase() === 'end_chat') {
           removeAiTypingPlaceholder();
-          addMessage('ai', "Thanks for using BetMaestro! Have a great day.");
-          setChatState('IDLE_AFTER_NO'); 
+          addMessage('ai', "Thanks for using BetMaestro! Have a great day. Feel free to ask if anything else comes up.");
+          setChatState('IDLE_AFTER_NO'); // Remain in this state, input active
         } else {
           removeAiTypingPlaceholder();
           addMessage('ai', "Sorry, I didn't quite get that. Please choose an option or type 'new bet' or 'end chat'.", undefined,  [{label: "Start new bet", value:"new_bet"}, {label: "No, that's all", value:"end_chat"}]);
         }
+        break;
+      case 'ERROR_BALANCE': // Allow user to input new amount or recharge
+         removeAiTypingPlaceholder();
+         const newAmount = parseFloat(text);
+         if (!isNaN(newAmount) && newAmount > 0) {
+            // Effectively re-trigger AWAITING_AMOUNT logic
+            setChatState('AWAITING_AMOUNT');
+            await handleHumanMessage(text); // Re-process the amount
+         } else {
+            addMessage('ai', "Please enter a valid positive number for your bet amount or choose an option.", undefined, [
+                {label: "50€", value: "50"}, {label: "100€", value: "100"}, {label: "200€", value: "200"}
+            ]);
+         }
         break;
 
       default:
@@ -215,17 +298,19 @@ const Chatbot: React.FC = () => {
   };
   
   const getInputPlaceholder = () => {
-    if (chatState === 'AWAITING_AMOUNT') return "Enter bet amount or choose an option";
-    if (chatState === 'AWAITING_CONFIRMATION' || chatState === 'PROMPT_PREMIUM' || chatState === 'IDLE_AFTER_NO') return "Choose an option or type your response";
     if (isAiTyping && messages.some(m => m.isLoading)) return "Waiting for BetMaestro...";
+    if (chatState === 'AWAITING_AMOUNT' || chatState === 'ERROR_BALANCE') return "Enter bet amount or choose an option";
+    if (chatState === 'AWAITING_CONFIRMATION' || chatState === 'PROMPT_PREMIUM' || chatState === 'IDLE_AFTER_NO') return "Choose an option or type your response";
     return "Type your message...";
   }
 
   const isInputDisabled = () => {
-    if (isAiTyping) return true;
-    if (!user || balance === undefined) return true; // Disable if user/balance not loaded
-    const allowedStatesForInput: ChatState[] = ['GREETING', 'AWAITING_AMOUNT', 'AWAITING_CONFIRMATION', 'PROMPT_PREMIUM', 'IDLE_AFTER_NO'];
-    if (!allowedStatesForInput.includes(chatState)) return true;
+    if (isAiTyping && messages.some(m => m.isLoading)) return true; // Disable if AI is "thinking"
+    if (!user || balance === undefined || !isRestored) return true; // Disable if user/balance not loaded or not restored
+    
+    const nonInputStates: ChatState[] = ['GREETING', 'PROCESSING_AMOUNT', 'PROCESSING_BET', 'BET_PLACED', 'ERROR_GENERIC'];
+    if (nonInputStates.includes(chatState)) return true;
+    
     return false;
   }
 
@@ -235,7 +320,6 @@ const Chatbot: React.FC = () => {
         {messages.map((msg) => (
           <ChatMessage key={msg.id} message={msg} onOptionClick={handleHumanMessage} />
         ))}
-        {/* Removed the duplicate thinking message that was here */}
       </ScrollArea>
       <ChatInput 
         onSendMessage={handleHumanMessage} 
@@ -247,4 +331,3 @@ const Chatbot: React.FC = () => {
 };
 
 export default Chatbot;
-    
