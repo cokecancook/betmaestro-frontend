@@ -2,11 +2,12 @@
 "use client";
 
 import type React from 'react';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'; // Removed AvatarImage as it's not used
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'; // CardDescription not used
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { ChatMessage as ChatMessageType, GenerateBettingStrategyOutput } from '@/types';
 import { Bot, User, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAppContext } from '@/contexts/AppContext'; // Added import
 
 interface ChatMessageProps {
   message: ChatMessageType;
@@ -14,6 +15,7 @@ interface ChatMessageProps {
 }
 
 const ChatMessage: React.FC<ChatMessageProps> = ({ message, onOptionClick }) => {
+  const { theme } = useAppContext(); // Added to get current theme
   const isAI = message.sender === 'ai';
 
   const renderStrategy = (strategy: GenerateBettingStrategyOutput) => (
@@ -43,11 +45,11 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onOptionClick }) => 
   );
 
   return (
-    <div className={`flex items-end space-x-3 ${isAI ? '' : 'justify-end'} mb-4`}>
+    <div className={`flex items-end space-x-3 ${isAI ? '' : 'justify-end'} mb-6`}> {/* Increased mb from 4 to 6 */}
       {isAI && (
         <Avatar className="h-8 w-8 shrink-0 self-start mt-1">
-          <AvatarFallback className="bg-orange-500 text-black">
-            <Bot size={20} />
+          <AvatarFallback className="bg-orange-500"> {/* Removed text-black here */}
+            <Bot size={20} className={theme === 'light' ? 'text-black' : 'text-white'} /> {/* Conditional icon color */}
           </AvatarFallback>
         </Avatar>
       )}
@@ -85,8 +87,8 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onOptionClick }) => 
       </div>
       {!isAI && (
         <Avatar className="h-8 w-8 shrink-0 self-start mt-1">
-          <AvatarFallback className="bg-primary text-primary-foreground">
-            <User size={20} />
+          <AvatarFallback className="bg-primary"> {/* Removed text-primary-foreground here */}
+            <User size={20} className={theme === 'light' ? 'text-primary-foreground' : 'text-background'} /> {/* Conditional icon color */}
           </AvatarFallback>
         </Avatar>
       )}
