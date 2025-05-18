@@ -3,7 +3,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import BetMaestroLogo from '@/components/BetMaestroLogo';
+import Image from 'next/image'; // Added import
 import { useAppContext } from '@/contexts/AppContext';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -19,7 +19,7 @@ export default function SplashPage() {
         } else {
           router.replace('/login');
         }
-      }, 1500); // Show splash for 1.5 seconds
+      }, 3000); // Show splash for 3 seconds
 
       return () => clearTimeout(timer);
     }
@@ -28,7 +28,7 @@ export default function SplashPage() {
   if (isLoading) {
      return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4">
-        <Skeleton className="h-12 w-48 mb-8" />
+        <Skeleton className="h-32 w-32 rounded-full mb-6" /> 
         <Skeleton className="h-8 w-64" />
       </div>
     );
@@ -36,8 +36,19 @@ export default function SplashPage() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4 animate-fadeIn">
-      <BetMaestroLogo className="text-6xl mb-8 drop-shadow-lg" />
-      <p className="text-xl text-foreground">Your AI Betting Assistant</p>
+      <div className="mb-8">
+        <Image 
+          src="https://placehold.co/200x200.png" 
+          alt="BetMaestro Logo" 
+          width={200} 
+          height={200} 
+          className="rounded-lg shadow-2xl"
+          priority // Important for LCP on a splash screen
+          data-ai-hint="basketball brain" 
+        />
+      </div>
+      <p className="text-2xl font-semibold text-foreground">BetMaestro</p>
+      <p className="text-lg text-muted-foreground">Your AI Betting Assistant</p>
     </div>
   );
 }

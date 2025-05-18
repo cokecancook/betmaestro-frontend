@@ -14,6 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ThemeToggle } from './ThemeToggle'; // Added import
 
 const TopMenu: React.FC = () => {
   const { user, balance, placedBets, logout } = useAppContext();
@@ -29,7 +30,7 @@ const TopMenu: React.FC = () => {
           <BetMaestroLogo />
         </Link>
         
-        <nav className="flex items-center space-x-4 md:space-x-6">
+        <nav className="flex items-center space-x-2 md:space-x-4">
           <Link href="/wallet" className="flex items-center text-sm font-medium text-foreground hover:text-primary transition-colors" aria-label="View your wallet">
             <Wallet className="mr-1 h-5 w-5" />
             <span className="hidden sm:inline">Wallet:</span>
@@ -45,6 +46,8 @@ const TopMenu: React.FC = () => {
               </span>
             )}
           </Link>
+
+          <ThemeToggle /> 
 
           {user && (
             <DropdownMenu>
