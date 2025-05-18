@@ -12,11 +12,22 @@ export interface Bet {
   awayTeam: string;
   betAmount: number;
   odds: number;
-  house?: string; // Added house as optional
+  house?: string;
   betWinnerTeam: string;
   betResult?: 'won' | 'lost' | 'pending';
   betGain?: number;
   betDate: string;
+}
+
+export interface SuggestedBet {
+  gameDate: string;
+  homeTeam: string;
+  awayTeam: string;
+  betAmount: number;
+  odds: number;
+  house: string;
+  betWinnerTeam: string;
+  justification: string;
 }
 
 export interface DummyData {
@@ -37,5 +48,11 @@ export interface ChatMessage {
 // Re-exporting AI flow types for easier access if needed in UI
 export type { SummarizePastBetsInput, SummarizePastBetsOutput } from '@/ai/flows/summarize-past-bets';
 export type { ChatBotWelcomeMessageInput, ChatBotWelcomeMessageOutput } from '@/ai/flows/chatbot-welcome-message';
-export type { GenerateBettingStrategyInput, GenerateBettingStrategyOutput } from '@/ai/flows/generate-betting-strategy';
 
+// Updated GenerateBettingStrategyOutput to use SuggestedBet
+export type { GenerateBettingStrategyInput } from '@/ai/flows/generate-betting-strategy';
+export interface GenerateBettingStrategyOutput {
+  strategyDescription: string;
+  suggestedBets: SuggestedBet[];
+  riskAssessment: string;
+}

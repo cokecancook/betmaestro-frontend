@@ -11,6 +11,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import type { SuggestedBet, GenerateBettingStrategyOutput as OutputType } from '@/types';
 
 const GenerateBettingStrategyInputSchema = z.object({
   walletBalance: z
@@ -22,40 +23,28 @@ const GenerateBettingStrategyInputSchema = z.object({
 });
 export type GenerateBettingStrategyInput = z.infer<typeof GenerateBettingStrategyInputSchema>;
 
+const SuggestedBetSchema = z.object({
+  gameDate: z.string().describe('The date of the game (DD/MM/YYYY).'),
+  homeTeam: z.string().describe('The home team name.'),
+  awayTeam: z.string().describe('The away team name.'),
+  betAmount: z.number().describe('The amount suggested to bet on this specific outcome in EUR.'),
+  odds: z.number().describe('The odds for this specific bet.'),
+  house: z.string().describe('The betting house for this specific bet.'),
+  betWinnerTeam: z.string().describe('The team suggested to win for this bet.'),
+  justification: z.string().describe('The justification for suggesting this bet.'),
+});
+
 const GenerateBettingStrategyOutputSchema = z.object({
-  strategyDescription: z.string().describe('A detailed betting strategy based on the provided wallet balance and bet amount, focusing on the specified game.'),
-  suggestedBets: z.array(z.string()).describe('An array of 3 suggested bets for the specified game, each with a different house and justification.'),
-  riskAssessment: z.string().describe('An assessment of the risk associated with the generated betting strategy for the specified game.'),
+  strategyDescription: z.string().describe('A detailed betting strategy based on the provided wallet balance and bet amount, focusing on the specified game and betting on the Pacers.'),
+  suggestedBets: z.array(SuggestedBetSchema).describe('An array of 3 suggested bets for the specified game, each with a different house and justification, focused on the Pacers winning, and summing up to the total bet amount.'),
+  riskAssessment: z.string().describe('An assessment of the risk associated with betting on the Pacers for the specified game.'),
 });
 export type GenerateBettingStrategyOutput = z.infer<typeof GenerateBettingStrategyOutputSchema>;
 
-export async function generateBettingStrategy(input: GenerateBettingStrategyInput): Promise<GenerateBettingStrategyOutput> {
+
+export async function generateBettingStrategy(input: GenerateBettingStrategyInput): Promise<OutputType> {
   return generateBettingStrategyFlow(input);
 }
-
-// The prompt definition can remain, but it won't be used by the flow below.
-// const prompt = ai.definePrompt({
-//   name: 'generateBettingStrategyPrompt',
-//   input: {schema: GenerateBettingStrategyInputSchema},
-//   output: {schema: GenerateBettingStrategyOutputSchema},
-//   prompt: `You are an expert betting strategy advisor.
-// Your task is to provide a detailed betting strategy for the upcoming basketball game: New York Knicks vs Indiana Pacers on 22/05/2025.
-// The user's current wallet balance is {{{walletBalance}}} EUR and they are considering a bet amount of {{{betAmount}}} EUR.
-
-// Your strategy must include:
-// 1.  A general 'strategyDescription' for approaching this game, considering the user's balance and bet amount.
-// 2.  A list of 3 specific 'suggestedBets' for this game.
-//     *   Each bet MUST be with a different betting house.
-//     *   You MUST choose these houses ONLY from the following list: "bet365", "Betfair", "Betway", "bwin", "DAZN", "888sport", "Bet442".
-//     *   For each suggested bet, provide a clear justification. Format each suggestion clearly (e.g., "Bet on [Team/Outcome] with [House] because [Justification]. If possible, mention potential odds or value.").
-// 3.  A 'riskAssessment' for these suggested bets.
-
-// User's Wallet Balance: {{{walletBalance}}} EUR
-// User's Bet Amount: {{{betAmount}}} EUR
-// Game: New York Knicks vs Indiana Pacers
-// Date: 22/05/2025
-// Available Betting Houses for suggestions: "bet365", "Betfair", "Betway", "bwin", "DAZN", "888sport", "Bet442".`,
-// });
 
 const generateBettingStrategyFlow = ai.defineFlow(
   {
@@ -63,18 +52,73 @@ const generateBettingStrategyFlow = ai.defineFlow(
     inputSchema: GenerateBettingStrategyInputSchema,
     outputSchema: GenerateBettingStrategyOutputSchema,
   },
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async (input: GenerateBettingStrategyInput): Promise<GenerateBettingStrategyOutput> => {
-    // Return a hardcoded dummy strategy
+    const totalBetAmount = input.betAmount;
+    const gameDate = "22/05/2025";
+    const homeTeam = "New York Knicks";
+    const awayTeam = "Indiana Pacers";
+    const betOnTeam = "Indiana Pacers";
+
+    // Distribute the bet amount
+    let bet1Amount = Math.floor(totalBetAmount / 3);
+    let bet2Amount = Math.floor(totalBetAmount / 3);
+    let bet3Amount = totalBetAmount - bet1Amount - bet2Amount;
+
+    // Ensure no bet amount is zero if totalBetAmount is very small but positive
+    // This logic can be refined for very small amounts, but for typical bets it should work.
+    if (totalBetAmount > 0 && bet1Amount === 0) bet1Amount = totalBetAmount; // Put all on one bet if too small for 3.
+    if (bet1Amount > 0 && bet2Amount === 0 && bet3Amount === 0 && bet1Amount !== totalBetAmount ) { // if only bet1 got amount
+        bet2Amount = Math.floor(bet1Amount / 2);
+        bet1Amount = bet1Amount - bet2Amount;
+        if (bet1Amount + bet2Amount !== totalBetAmount) { // adjust if needed
+           const diff = totalBetAmount - (bet1Amount+bet2Amount);
+           bet1Amount += diff;
+        }
+    }
+     if (bet1Amount <= 0 && bet2Amount <=0 && bet3Amount <= 0 && totalBetAmount > 0) {
+        bet1Amount = totalBetAmount; // failsafe
+    }
+
+
+    const suggestedBets: SuggestedBet[] = [];
+
+    if (bet1Amount > 0) {
+        suggestedBets.push({
+          gameDate, homeTeam, awayTeam,
+          betAmount: bet1Amount,
+          odds: 2.50, // Dummy odds
+          house: "bet365",
+          betWinnerTeam: betOnTeam,
+          justification: "Pacers have a strong offensive lineup that could challenge the Knicks, especially if their key players are in form. bet365 offers competitive odds."
+        });
+    }
+    if (bet2Amount > 0) {
+        suggestedBets.push({
+          gameDate, homeTeam, awayTeam,
+          betAmount: bet2Amount,
+          odds: 2.65, // Dummy odds
+          house: "Betfair",
+          betWinnerTeam: betOnTeam,
+          justification: "Betfair Exchange often provides value on underdog moneyline bets. Pacers' pace could disrupt the Knicks' rhythm."
+        });
+    }
+     if (bet3Amount > 0 && suggestedBets.length < 3) {
+        suggestedBets.push({
+          gameDate, homeTeam, awayTeam,
+          betAmount: bet3Amount,
+          odds: 2.40, // Dummy odds
+          house: "Betway",
+          betWinnerTeam: betOnTeam,
+          justification: "Consider diversifying with Betway. The Pacers have shown resilience in away games against tough opponents this season."
+        });
+    }
+    // If totalBetAmount was small and resulted in less than 3 bets, fill remaining slots if needed or adjust logic above.
+    // For this dummy, we'll ensure we have at least one bet if totalBetAmount > 0.
+
     return {
-      strategyDescription: "This dummy strategy focuses on diversifying bets across different outcomes and houses for the New York Knicks vs Indiana Pacers game on 22/05/2025. Consider your overall bankroll before placing these bets.",
-      suggestedBets: [
-        "Bet on New York Knicks to win with bet365. Justification: Knicks have shown strong home-court performance recently and this is a dummy bet for testing purposes.",
-        "Bet on Over 220.5 total points with Betfair. Justification: Both teams have high-scoring tendencies and this is a placeholder suggestion for the Knicks vs Pacers game.",
-        "Bet on Indiana Pacers +5.5 point spread with Betway. Justification: Pacers are strong underdogs and covering the spread is a plausible outcome for this simulated scenario."
-      ],
-      riskAssessment: "This is a dummy risk assessment for the Knicks vs Pacers game. All betting involves risk. Please bet responsibly.",
+      strategyDescription: `This dummy strategy focuses on betting on the Indiana Pacers to win against the New York Knicks on ${gameDate}. The total bet of ${totalBetAmount}€ has been distributed across different houses to potentially maximize returns. Remember, betting on an away team can be risky.`,
+      suggestedBets,
+      riskAssessment: `Medium to High Risk. Betting on the Indiana Pacers as the away team against the Knicks involves significant risk. The Knicks are typically strong at home. However, the potential returns are higher. Evaluate team news and player availability before confirming.`,
     };
   }
 );
-
