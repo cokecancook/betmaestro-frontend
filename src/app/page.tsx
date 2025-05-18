@@ -1,7 +1,6 @@
 
 "use client";
 
-import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useAppContext } from '@/contexts/AppContext';
@@ -28,13 +27,12 @@ export default function SplashPage() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 animate-fadeIn">
-      <div className="mb-8 shadow-[0_0_100px_0px_rgba(251,146,60,0.35)] rounded-[400px]">
+      <div className="mb-8 w-[300px] h-[300px] rounded-full overflow-hidden shadow-[0_0_100px_0px_rgba(251,146,60,0.35)]">
         <Image
           src="/betmaestro-logo.png"
           alt="BetMaestro Logo"
           width={300}
           height={300}
-          className="rounded-[400px]"
           priority 
           data-ai-hint="basketball brain"
         />
