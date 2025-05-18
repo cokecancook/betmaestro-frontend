@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import type { ChatMessage as ChatMessageType, GenerateBettingStrategyOutput, Bet } from '@/types';
+import type { ChatMessage as ChatMessageType, GenerateBettingStrategyOutput, Bet, SuggestedBet } from '@/types';
 import { useAppContext } from '@/contexts/AppContext';
 import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
@@ -40,7 +40,7 @@ const Chatbot: React.FC = () => {
   const [isRestored, setIsRestored] = useState(false);
 
   const addMessage = useCallback((sender: 'ai' | 'human', text?: string, strategy?: GenerateBettingStrategyOutput, options?: {label: string, value: string}[], isLoading?: boolean) => {
-    setMessages(prev => [...prev, { id: uuidv4(), sender, text, strategy, options, isLoading }]);
+    setMessages(prev => [...prev, { id: uuidv4(), sender, text, strategy, options, isLoading, timestamp: new Date().toISOString() } as ChatMessageType]);
   }, []);
 
   useEffect(() => {
@@ -54,7 +54,6 @@ const Chatbot: React.FC = () => {
     }
   }, [messages]);
 
-  // Load chat state from localStorage on mount
   useEffect(() => {
     const storedMessages = localStorage.getItem(CHAT_MESSAGES_KEY);
     const storedChatState = localStorage.getItem(CHAT_STATE_KEY) as ChatState | null;
@@ -67,18 +66,36 @@ const Chatbot: React.FC = () => {
 
         let activeChatState = storedChatState || 'GREETING';
         const nonInteractiveStates: ChatState[] = ['PROCESSING_AMOUNT', 'PROCESSING_BET', 'ERROR_GENERIC'];
-        const resetToGreetingStates: ChatState[] = ['GREETING'];
-
-
-        if (nonInteractiveStates.includes(activeChatState) || (resetToGreetingStates.includes(activeChatState) && parsedMessages.length > 0 )) {
-            activeChatState = parsedMessages.length > 0 ? 'AWAITING_AMOUNT' : 'GREETING'; // Default to awaiting amount if messages exist
-             if (parsedMessages.some((m: ChatMessageType) => m.options && m.options.some(opt => opt.value === 'yes' || opt.value === 'no'))) {
-                activeChatState = 'AWAITING_CONFIRMATION'; // If last AI message had yes/no options
-            } else if (parsedMessages.some((m: ChatMessageType) => m.options && m.options.some(opt => opt.value === 'new_bet'))) {
-                activeChatState = 'IDLE_AFTER_NO';
+        
+        if (nonInteractiveStates.includes(activeChatState)) {
+             activeChatState = parsedMessages.length > 0 ? 'AWAITING_AMOUNT' : 'GREETING';
+             const lastAiMsgWithOptions = [...parsedMessages].reverse().find(m => m.sender === 'ai' && m.options && m.options.length > 0);
+             if (lastAiMsgWithOptions) {
+                if (lastAiMsgWithOptions.options?.some(opt => opt.value === 'yes' || opt.value === 'no')) {
+                    activeChatState = 'AWAITING_CONFIRMATION';
+                } else if (lastAiMsgWithOptions.options?.some(opt => opt.value === 'new_bet')) {
+                    activeChatState = 'IDLE_AFTER_NO';
+                } else if (lastAiMsgWithOptions.options?.some(opt => ["50","100","200"].includes(opt.value))) {
+                    activeChatState = 'AWAITING_AMOUNT';
+                }
+             }
+        } else if (activeChatState === 'GREETING' && parsedMessages.length > 0) {
+          // If greeting but messages exist, figure out the actual last state
+            const lastAiMsgWithOptions = [...parsedMessages].reverse().find(m => m.sender === 'ai' && m.options && m.options.length > 0);
+            if (lastAiMsgWithOptions) {
+                if (lastAiMsgWithOptions.options?.some(opt => opt.value === 'yes' || opt.value === 'no')) {
+                    activeChatState = 'AWAITING_CONFIRMATION';
+                } else if (lastAiMsgWithOptions.options?.some(opt => opt.value === 'new_bet')) {
+                    activeChatState = 'IDLE_AFTER_NO';
+                } else {
+                    activeChatState = 'AWAITING_AMOUNT';
+                }
+            } else {
+                activeChatState = 'AWAITING_AMOUNT'; // Default if no clear option path
             }
         }
         setChatState(activeChatState);
+
       } catch (e) {
         console.error("Failed to parse chat messages from localStorage", e);
         setMessages([]);
@@ -106,7 +123,6 @@ const Chatbot: React.FC = () => {
   }, []);
 
 
-  // Save messages to localStorage
   useEffect(() => {
     if (isRestored) {
       const messagesToSave = messages.filter(m => !m.isLoading);
@@ -114,21 +130,18 @@ const Chatbot: React.FC = () => {
     }
   }, [messages, isRestored]);
 
-  // Save chatState to localStorage
   useEffect(() => {
     if (isRestored) {
       localStorage.setItem(CHAT_STATE_KEY, chatState);
     }
   }, [chatState, isRestored]);
 
-  // Save currentBetAmount to localStorage
   useEffect(() => {
     if (isRestored) {
       localStorage.setItem(CHAT_BET_AMOUNT_KEY, JSON.stringify(currentBetAmount));
     }
   }, [currentBetAmount, isRestored]);
 
-  // Initial greeting
   useEffect(() => {
     if (user && balance !== undefined && isRestored) {
       if (messages.length === 0 && chatState === 'GREETING') {
@@ -170,12 +183,11 @@ const Chatbot: React.FC = () => {
 
     addMessage('human', humanMessageText);
     setIsAiTyping(true);
-    // Only add AI typing placeholder if not already present by checking the last message
     setMessages(prev => {
         if (prev.length > 0 && prev[prev.length -1].isLoading && prev[prev.length-1].sender === 'ai') {
             return prev;
         }
-        return [...prev, { id: uuidv4(), sender: 'ai', isLoading: true}];
+        return [...prev, { id: uuidv4(), sender: 'ai', isLoading: true, timestamp: new Date().toISOString() } as ChatMessageType];
     });
 
 
@@ -204,13 +216,14 @@ const Chatbot: React.FC = () => {
           try {
             const strategy = await generateBettingStrategy({ walletBalance: balance, betAmount: amount });
             removeAiTypingPlaceholder();
-            addMessage('ai', `Here's a strategy for your ${amount}€ bet:`, strategy, [{label: "Yes, place bet", value: "yes"}, {label: "No, thanks", value: "no"}]);
+            addMessage('ai', `Here's a strategy for your ${amount}€ bet:`, strategy, [{label: "Yes, place bets", value: "yes"}, {label: "No, thanks", value: "no"}]);
             setChatState('AWAITING_CONFIRMATION');
           } catch (error) {
             console.error("Error generating strategy:", error);
             removeAiTypingPlaceholder();
             addMessage('ai', "Sorry, I couldn't generate a strategy right now. Please try again.");
             setChatState('AWAITING_AMOUNT');
+            setCurrentBetAmount(null);
           }
         }
         break;
@@ -220,25 +233,51 @@ const Chatbot: React.FC = () => {
           if (user?.plan === 'premium') {
             setChatState('PROCESSING_BET');
 
-            // Simulate API call for bet placement
-            setTimeout(() => {
-              const newBet: Bet = {
-                id: uuidv4(),
-                gameDate: new Date().toISOString().split('T')[0],
-                homeTeam: "Team AI", awayTeam: "Team User",
-                betAmount: currentBetAmount!,
-                odds: Math.random() * 2 + 1,
-                betWinnerTeam: Math.random() > 0.5 ? "Team AI" : "Team User",
-                betDate: new Date().toISOString().split('T')[0],
-              };
-              addBet(newBet);
-              const newBalance = balance - currentBetAmount!;
-              updateBalance(newBalance);
+            const strategyMessage = [...messages].reverse().find(msg => msg.sender === 'ai' && msg.strategy);
+
+            if (!strategyMessage || !strategyMessage.strategy || typeof currentBetAmount !== 'number') {
               removeAiTypingPlaceholder();
-              addMessage('ai', `Bets placed for ${currentBetAmount}€! Your new balance is ${newBalance.toFixed(2)}€. Good luck! What's next?`, undefined, [{label: "Start new bet", value:"new_bet"}, {label: "No, that's all", value:"end_chat"}]);
-              toast({ title: "Bet Placed!", description: `Your ${currentBetAmount}€ bet has been successfully placed.` });
-              setChatState('IDLE_AFTER_NO');
+              addMessage('ai', "Sorry, there was an issue processing your bet. Could not retrieve strategy details or bet amount. Please try stating your bet amount again.");
+              setChatState('AWAITING_AMOUNT');
               setCurrentBetAmount(null);
+              return;
+            }
+
+            const betsToPlace: SuggestedBet[] = strategyMessage.strategy.suggestedBets;
+
+            setTimeout(() => {
+              try {
+                betsToPlace.forEach(suggestedBet => {
+                  const newBet: Bet = {
+                    id: uuidv4(),
+                    gameDate: suggestedBet.gameDate,
+                    homeTeam: suggestedBet.homeTeam,
+                    awayTeam: suggestedBet.awayTeam,
+                    betAmount: suggestedBet.betAmount,
+                    odds: suggestedBet.odds,
+                    house: suggestedBet.house,
+                    betWinnerTeam: suggestedBet.betWinnerTeam,
+                    betResult: 'pending',
+                    betDate: new Date().toISOString().split('T')[0],
+                  };
+                  addBet(newBet);
+                });
+
+                const newBalance = balance - currentBetAmount;
+                updateBalance(newBalance);
+
+                removeAiTypingPlaceholder();
+                addMessage('ai', `Bets placed for a total of ${currentBetAmount.toFixed(2)}€! Your new balance is ${newBalance.toFixed(2)}€. Good luck! What's next?`, undefined, [{label: "Start new bet", value:"new_bet"}, {label: "No, that's all", value:"end_chat"}]);
+                toast({ title: "Bets Placed!", description: `Your ${currentBetAmount.toFixed(2)}€ bet strategy has been successfully placed.` });
+                setChatState('IDLE_AFTER_NO');
+                setCurrentBetAmount(null);
+              } catch (e) {
+                console.error("Error during bet placement simulation:", e);
+                removeAiTypingPlaceholder();
+                addMessage('ai', "An unexpected error occurred while placing your bets. Please try again.");
+                setChatState('AWAITING_AMOUNT'); 
+                setCurrentBetAmount(null);
+              }
             }, 1500);
           } else {
             removeAiTypingPlaceholder();
@@ -252,7 +291,7 @@ const Chatbot: React.FC = () => {
           setCurrentBetAmount(null);
         } else {
           removeAiTypingPlaceholder();
-          addMessage('ai', "Please answer with 'Yes' or 'No'.", undefined, [{label: "Yes, place bet", value: "yes"}, {label: "No, thanks", value: "no"}]);
+          addMessage('ai', "Please answer with 'Yes' or 'No'.", undefined, [{label: "Yes, place bets", value: "yes"}, {label: "No, thanks", value: "no"}]);
         }
         break;
 
@@ -272,7 +311,13 @@ const Chatbot: React.FC = () => {
          if (actionValue.toLowerCase() === 'new_bet' && user) {
            try {
             setIsAiTyping(true);
-            setMessages(prev => [...prev, { id: uuidv4(), sender: 'ai', isLoading: true }]); // Manually add new typing indicator
+            // No need to add a new placeholder if one is already being managed by removeAiTypingPlaceholder
+            setMessages(prev => { // Add new typing indicator only if necessary
+              if (!prev.some(m => m.isLoading && m.sender === 'ai')) {
+                return [...prev, { id: uuidv4(), sender: 'ai', isLoading: true, timestamp: new Date().toISOString() } as ChatMessageType];
+              }
+              return prev;
+            });
             const response = await chatBotWelcomeMessage({ userName: user.name, walletBalance: balance });
             removeAiTypingPlaceholder();
             addMessage('ai', `${response.initialQuestion}`, undefined, [
@@ -283,7 +328,7 @@ const Chatbot: React.FC = () => {
             console.error("Error starting new bet:", error);
             removeAiTypingPlaceholder();
             addMessage('ai', "I had trouble starting a new bet. Please try asking for a 'new bet' again.");
-            setChatState('AWAITING_AMOUNT'); 
+            setChatState('IDLE_AFTER_NO'); 
           }
         } else if (actionValue.toLowerCase() === 'end_chat') {
           removeAiTypingPlaceholder();
@@ -291,14 +336,14 @@ const Chatbot: React.FC = () => {
           setChatState('IDLE_AFTER_NO'); 
         } else {
           removeAiTypingPlaceholder();
-          addMessage('ai', "Sorry, I didn't quite get that. Please choose an option or type 'new bet' or 'end chat'.", undefined,  [{label: "Start new bet", value:"new_bet"}, {label: "No, that's all", value:"end_chat"}]);
+          addMessage('ai', "Sorry, I didn't quite get that. Please choose an option or type 'new bet'.", undefined,  [{label: "Start new bet", value:"new_bet"}, {label: "No, that's all", value:"end_chat"}]);
         }
         break;
       case 'ERROR_BALANCE':
          const newAmountBalanceError = parseFloat(actionValue);
          if (!isNaN(newAmountBalanceError) && newAmountBalanceError > 0) {
-            setChatState('AWAITING_AMOUNT');
-            await handleHumanMessage(userInput); // Re-process the amount by calling self
+            setChatState('AWAITING_AMOUNT'); // Set state first
+            await handleHumanMessage(userInput); // Re-process the amount
          } else {
             removeAiTypingPlaceholder();
             addMessage('ai', "Please enter a valid positive number for your bet amount or choose an option.", undefined, [
@@ -323,18 +368,26 @@ const Chatbot: React.FC = () => {
   };
 
   const getInputPlaceholder = () => {
-    if (isAiTyping && messages.some(m => m.isLoading && m.sender === 'ai')) return "Waiting for BetMaestro...";
+    if (messages.some(m => m.isLoading && m.sender === 'ai')) return "Waiting for BetMaestro...";
     if (chatState === 'AWAITING_AMOUNT' || chatState === 'ERROR_BALANCE') return "Enter bet amount or choose an option";
     if (chatState === 'AWAITING_CONFIRMATION' || chatState === 'PROMPT_PREMIUM' || chatState === 'IDLE_AFTER_NO') return "Choose an option or type your response";
     return "Type your message...";
   }
 
   const isInputDisabled = () => {
-    if (isAiTyping && messages.some(m => m.isLoading && m.sender === 'ai')) return true;
+    if (messages.some(m => m.isLoading && m.sender === 'ai')) return true;
     if (!user || balance === undefined || !isRestored) return true;
 
     const nonInputStates: ChatState[] = ['GREETING', 'PROCESSING_AMOUNT', 'PROCESSING_BET', 'ERROR_GENERIC'];
     if (nonInputStates.includes(chatState)) return true;
+    
+    // Specifically allow input in IDLE_AFTER_NO
+    if (chatState === 'IDLE_AFTER_NO') return false;
+
+    // For states like AWAITING_CONFIRMATION or PROMPT_PREMIUM, we generally expect button clicks,
+    // but text input shouldn't be strictly disabled if we want to allow "new bet" typed commands.
+    // The current logic seems to handle this by having default cases or specific parsing.
+    // The primary blocker should be active AI processing or pre-restoration.
 
     return false;
   }
@@ -343,7 +396,7 @@ const Chatbot: React.FC = () => {
     <div className="flex flex-col h-[calc(100vh-4rem-1px)] max-h-[calc(100vh-4rem-1px)] bg-background rounded-lg shadow-lg overflow-hidden">
       <ScrollArea className="flex-grow px-4" ref={scrollAreaRef}>
         {messages.map((msg, index) => (
-          <ChatMessage key={msg.id} message={msg} onOptionClick={handleHumanMessage} isFirstInList={index === 0} />
+          <ChatMessage key={msg.id} message={msg} onOptionClick={handleHumanMessage} isFirstInList={index === 0 && msg.sender === 'ai'} />
         ))}
       </ScrollArea>
       <ChatInput
@@ -356,3 +409,5 @@ const Chatbot: React.FC = () => {
 };
 
 export default Chatbot;
+
+    
