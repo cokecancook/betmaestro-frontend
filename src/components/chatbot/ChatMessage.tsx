@@ -46,11 +46,11 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onOptionClick, isFir
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Bet Amount:</span>
-                  <span className="font-semibold">{formatCurrency(bet.betAmount)}</span>
+                  <span className="font-semibold">{typeof bet.betAmount === 'number' ? formatCurrency(bet.betAmount) : 'N/A'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Odds:</span>
-                  <span>{bet.odds.toFixed(2)}</span>
+                  <span>{typeof bet.odds === 'number' ? bet.odds.toFixed(2) : 'N/A'}</span>
                 </div>
                  <div className="pt-1">
                   <p className="text-muted-foreground font-medium">Justification:</p>
@@ -77,14 +77,15 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onOptionClick, isFir
       {isAI && (
         <Avatar className="h-8 w-8 shrink-0 self-start mt-1">
           <AvatarFallback className="bg-orange-500">
-            <Bot size={20} className={theme === 'light' ? 'text-white' : 'text-black'} />
+            <Bot size={20} className={cn(theme === 'light' ? 'text-white' : 'text-black')} />
           </AvatarFallback>
         </Avatar>
       )}
       <div
-        className={`max-w-xs md:max-w-md lg:max-w-lg p-3 rounded-xl shadow-md ${
+        className={cn(
+          'max-w-xs md:max-w-md lg:max-w-lg p-3 rounded-xl shadow-md',
           isAI ? 'bg-card text-card-foreground rounded-tl-none' : 'bg-primary text-primary-foreground rounded-tr-none'
-        }`}
+        )}
       >
         {message.isLoading ? (
           <div className="flex items-center space-x-2">
