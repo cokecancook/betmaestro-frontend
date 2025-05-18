@@ -42,6 +42,12 @@ export default function MyBetsPage() {
     { label: "Bet Balance", value: formatCurrency(betBalance), icon: Scale, color: betBalance >= 0 ? "text-green-500" : "text-red-500" },
   ];
 
+  const pendingBets = placedBets.filter(bet => !bet.betResult || bet.betResult === 'pending');
+  const totalEstimatedGainFromPending = pendingBets.reduce((sum, bet) => {
+    const estimatedGain = (bet.betAmount * bet.odds) - bet.betAmount;
+    return sum + estimatedGain;
+  }, 0);
+
 
   return (
     <div className="container mx-auto p-4">
@@ -53,42 +59,31 @@ export default function MyBetsPage() {
       <h1 className="text-3xl font-bold mb-6 text-center text-foreground">My Placed Bets</h1>
 
       {placedBets.length > 0 && (
-        <Card className="mb-8 shadow-md bg-card">
-          <CardHeader>
-            <CardTitle className="text-xl text-center text-foreground">Betting Summary</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-              {summaryStats.map(stat => (
-                <div key={stat.label} className="p-3 rounded-lg bg-background/70 flex flex-col items-center shadow">
-                  <stat.icon className={cn("h-7 w-7 mb-1.5", stat.color)} />
-                  <p className="text-xs text-muted-foreground">{stat.label}</p>
-                  <p className="text-lg font-semibold text-foreground">{stat.value}</p>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+        <>
+          <Card className="mb-8 shadow-md bg-card">
+            <CardHeader>
+              <CardTitle className="text-xl text-center text-foreground">Betting Summary</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                {summaryStats.map(stat => (
+                  <div key={stat.label} className="p-3 rounded-lg bg-background/70 flex flex-col items-center shadow">
+                    <stat.icon className={cn("h-7 w-7 mb-1.5", stat.color)} />
+                    <p className="text-xs text-muted-foreground">{stat.label}</p>
+                    <p className="text-lg font-semibold text-foreground">{stat.value}</p>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
 
-      {placedBets.length === 0 ? (
-        <Card className="w-full max-w-2xl mx-auto text-center shadow-lg">
-           <CardHeader>
-            <Ticket className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-            <CardTitle className="text-2xl">No Bets Placed Yet</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <CardDescription className="text-lg">
-              It looks like you haven't placed any bets. Head over to the chat to get started!
-            </CardDescription>
-          </CardContent>
-          <CardFooter>
-             <Link href="/landing" className="mx-auto">
-                <Button variant="default" className="bg-primary hover:bg-primary/90">Go to Chat</Button>
-             </Link>
-          </CardFooter>
-        </Card>
-      ) : (
+          {pendingBets.length > 0 && (
+            <p className="text-center text-sm text-muted-foreground mb-6">
+              If all pending bets are won, your total estimated gain would be{' '}
+              <span className="font-semibold text-primary">{formatCurrency(totalEstimatedGainFromPending)}</span>.
+            </p>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {placedBets.map((bet: Bet) => (
               <Card key={bet.id} className="shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col">
@@ -160,7 +155,28 @@ export default function MyBetsPage() {
               </Card>
             ))}
           </div>
+        </>
+      )}
+      
+      {placedBets.length === 0 && (
+        <Card className="w-full max-w-2xl mx-auto text-center shadow-lg">
+           <CardHeader>
+            <Ticket className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+            <CardTitle className="text-2xl">No Bets Placed Yet</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <CardDescription className="text-lg">
+              It looks like you haven't placed any bets. Head over to the chat to get started!
+            </CardDescription>
+          </CardContent>
+          <CardFooter>
+             <Link href="/landing" className="mx-auto">
+                <Button variant="default" className="bg-primary hover:bg-primary/90">Go to Chat</Button>
+             </Link>
+          </CardFooter>
+        </Card>
       )}
     </div>
   );
 }
+

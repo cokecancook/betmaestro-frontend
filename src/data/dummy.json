@@ -12,12 +12,12 @@
       "gameDate": "22/05/2025",
       "homeTeam": "New York Knicks",
       "awayTeam": "Indiana Pacers",
-      "betAmount": 100,
+      "betAmount": 50,
       "odds": 1.75,
-      "house": "BetMaestro Special",
+      "house": "bet365",
       "betWinnerTeam": "New York Knicks",
       "betResult": "pending",
-      "betDate": "21/05/2025"
+      "betDate": "20/05/2025"
     },
     {
       "id": "bet-14",
@@ -25,20 +25,20 @@
       "homeTeam": "New York Knicks",
       "awayTeam": "Indiana Pacers",
       "betAmount": 75,
-      "odds": 2.10,
-      "house": "BetMaestro Odds",
+      "odds": 1.90,
+      "house": "Betfair",
       "betWinnerTeam": "Indiana Pacers",
       "betResult": "pending",
-      "betDate": "21/05/2025"
+      "betDate": "20/05/2025"
     },
     {
       "id": "bet-13",
       "gameDate": "22/05/2025",
       "homeTeam": "New York Knicks",
       "awayTeam": "Indiana Pacers",
-      "betAmount": 50,
-      "odds": 1.90,
-      "house": "BetMaestro House",
+      "betAmount": 100,
+      "odds": 2.10,
+      "house": "Betway",
       "betWinnerTeam": "New York Knicks",
       "betResult": "pending",
       "betDate": "20/05/2025"
