@@ -37,9 +37,9 @@ export default function MyBetsPage() {
 
   const summaryStats = [
     { label: "Total Bets", value: totalBetsPlaced.toString(), icon: ClipboardList, color: "text-primary" },
+    { label: "Bet Balance", value: formatCurrency(betBalance), icon: Scale, color: "text-foreground" },
     { label: "Total Gains", value: formatCurrency(totalGains), icon: TrendingUp, color: "text-green-500" },
     { label: "Total Losses", value: formatCurrency(totalLosses), icon: TrendingDown, color: "text-red-500" },
-    { label: "Bet Balance", value: formatCurrency(betBalance), icon: Scale, color: betBalance >= 0 ? "text-green-500" : "text-red-500" },
   ];
 
   const pendingBets = placedBets.filter(bet => !bet.betResult || bet.betResult === 'pending');
