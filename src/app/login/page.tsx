@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useEffect } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import BetMaestroLogo from '@/components/BetMaestroLogo';
 import { Button } from '@/components/ui/button';
@@ -37,7 +38,9 @@ export default function LoginPage() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4">
-      <BetMaestroLogo className="text-5xl mb-8" />
+      <Link href="/" aria-label="Go to splash screen">
+        <BetMaestroLogo className="text-5xl mb-8" />
+      </Link>
       <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="text-center">
           <CardDescription>Service available only for members.</CardDescription>

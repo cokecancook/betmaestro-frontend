@@ -15,14 +15,6 @@ const BetMaestroLogo: React.FC<{ className?: string }> = ({ className }) => {
   return (
     <div className={cn("flex items-center gap-2", className)}>
       <Image
-        src="/ball-brain.png"
-        alt="BetMaestro icon"
-        width={28}
-        height={28}
-        priority
-        data-ai-hint="basketball brain icon"
-      />
-      <Image
         src={logoSrc}
         alt="BetMaestro"
         width={160} 
