@@ -43,10 +43,10 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onOptionClick }) => 
   );
 
   return (
-    <div className={`flex items-end space-x-3 ${isAI ? '' : 'justify-end'} mb-4`}> {/* Added mb-4 for spacing */}
+    <div className={`flex items-end space-x-3 ${isAI ? '' : 'justify-end'} mb-4`}>
       {isAI && (
-        <Avatar className="h-8 w-8 shrink-0 self-start mt-1"> {/* Align avatar better if message is long */}
-          <AvatarFallback className="bg-primary text-primary-foreground">
+        <Avatar className="h-8 w-8 shrink-0 self-start mt-1">
+          <AvatarFallback className="bg-orange-500 text-black">
             <Bot size={20} />
           </AvatarFallback>
         </Avatar>
@@ -66,7 +66,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onOptionClick }) => 
             {message.text && <p className="text-sm whitespace-pre-wrap">{message.text}</p>}
             {message.strategy && renderStrategy(message.strategy)}
             {message.options && message.options.length > 0 && (
-              <div className="mt-3 flex flex-wrap gap-2"> {/* Increased mt slightly */}
+              <div className="mt-3 flex flex-wrap gap-2">
                 {message.options.map((option) => (
                   <Button
                     key={option.value}
@@ -84,8 +84,8 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onOptionClick }) => 
         )}
       </div>
       {!isAI && (
-        <Avatar className="h-8 w-8 shrink-0 self-start mt-1"> {/* Align avatar better */}
-          <AvatarFallback className="bg-accent text-accent-foreground">
+        <Avatar className="h-8 w-8 shrink-0 self-start mt-1">
+          <AvatarFallback className="bg-primary text-primary-foreground">
             <User size={20} />
           </AvatarFallback>
         </Avatar>
@@ -95,4 +95,3 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onOptionClick }) => 
 };
 
 export default ChatMessage;
-

@@ -14,7 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ThemeToggle } from './ThemeToggle'; // Added import
+import { ThemeToggle } from './ThemeToggle'; 
 
 const TopMenu: React.FC = () => {
   const { user, balance, placedBets, logout } = useAppContext();
@@ -52,8 +52,8 @@ const TopMenu: React.FC = () => {
           {user && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0">
-                   <UserCircle className="h-7 w-7 text-foreground hover:text-primary transition-colors" />
+                <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0 text-foreground hover:text-primary hover:bg-transparent">
+                   <UserCircle className="h-7 w-7" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>

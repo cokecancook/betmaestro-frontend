@@ -15,7 +15,7 @@ export function ThemeToggle() {
       size="icon"
       onClick={() => setTheme(theme === "light" ? "dark" : "light")}
       aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
-      className="h-10 w-10 rounded-full p-0 text-foreground hover:text-primary"
+      className="h-10 w-10 rounded-full p-0 text-foreground hover:text-primary hover:bg-transparent"
     >
       {theme === "light" ? (
         <Sun className="h-[1.2rem] w-[1.2rem]" />
