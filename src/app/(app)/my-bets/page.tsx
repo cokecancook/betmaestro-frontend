@@ -2,14 +2,15 @@
 "use client";
 
 import Link from 'next/link';
-import { ArrowLeft, Ticket, TrendingUp, TrendingDown, CircleHelp } from 'lucide-react';
+import { ArrowLeft, Ticket } from 'lucide-react'; // Removed TrendingUp, TrendingDown, CircleHelp
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAppContext } from '@/contexts/AppContext';
 import type { Bet } from '@/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import Image from 'next/image';
-import { Button } from '@/components/ui/button'; // Added import
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils'; // Added cn import
 
 export default function MyBetsPage() {
   const { placedBets } = useAppContext();
@@ -18,19 +19,11 @@ export default function MyBetsPage() {
     return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(value);
   };
   
-  const getBetStatusIcon = (status?: 'won' | 'lost' | 'pending') => {
-    switch (status) {
-      case 'won': return <TrendingUp className="h-5 w-5 text-green-500" />;
-      case 'lost': return <TrendingDown className="h-5 w-5 text-red-500" />;
-      case 'pending':
-      default:
-        return <CircleHelp className="h-5 w-5 text-yellow-500" />;
-    }
-  };
+  // getBetStatusIcon function removed as icon is no longer displayed
 
   const getBetStatusBadgeVariant = (status?: 'won' | 'lost' | 'pending'): "default" | "destructive" | "secondary" | "outline" => {
     switch (status) {
-      case 'won': return "default"; // Will use primary color
+      case 'won': return "default"; // Will be styled green conditionally
       case 'lost': return "destructive";
       case 'pending': return "secondary";
       default: return "outline";
@@ -75,7 +68,13 @@ export default function MyBetsPage() {
                       <CardTitle className="text-xl mb-1">{bet.homeTeam} vs {bet.awayTeam}</CardTitle>
                       <CardDescription>Bet on: {bet.betWinnerTeam}</CardDescription>
                     </div>
-                     <Badge variant={getBetStatusBadgeVariant(bet.betResult)} className="capitalize shrink-0">
+                     <Badge 
+                       variant={getBetStatusBadgeVariant(bet.betResult)} 
+                       className={cn(
+                         "capitalize shrink-0",
+                         bet.betResult === 'won' && "bg-green-500 text-white border-transparent hover:bg-green-600"
+                       )}
+                     >
                        {bet.betResult || 'Pending'}
                      </Badge>
                   </div>
@@ -83,7 +82,7 @@ export default function MyBetsPage() {
                 <CardContent className="flex-grow space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Game Date:</span>
-                    <span>{new Date(bet.gameDate).toLocaleDateString()}</span>
+                    <span>{bet.gameDate}</span> {/* Display date string directly */}
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Bet Amount:</span>
@@ -93,19 +92,26 @@ export default function MyBetsPage() {
                     <span className="text-muted-foreground">Odds:</span>
                     <span>{bet.odds.toFixed(2)}</span>
                   </div>
-                   {bet.betGain !== undefined && (
+                   {bet.betResult === 'lost' ? (
                      <div className="flex justify-between">
                        <span className="text-muted-foreground">Gain/Loss:</span>
-                       <span className={`font-semibold ${bet.betGain >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                       <span className="font-semibold text-red-600">
+                         {formatCurrency(-bet.betAmount)}
+                       </span>
+                     </div>
+                   ) : bet.betGain !== undefined && bet.betResult === 'won' ? ( // Only show gain for 'won' bets
+                     <div className="flex justify-between">
+                       <span className="text-muted-foreground">Gain/Loss:</span>
+                       <span className="font-semibold text-green-600">
                          {formatCurrency(bet.betGain)}
                        </span>
                      </div>
-                   )}
+                   ) : null}
                 </CardContent>
                 <CardFooter className="text-xs text-muted-foreground pt-3 border-t mt-auto">
                   <div className="flex justify-between items-center w-full">
-                    <span>Bet Placed: {new Date(bet.betDate).toLocaleDateString()}</span>
-                    {getBetStatusIcon(bet.betResult)}
+                    <span>Bet Placed: {bet.betDate}</span> {/* Display date string directly */}
+                    {/* Icon removed from here */}
                   </div>
                 </CardFooter>
               </Card>
