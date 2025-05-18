@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { useAppContext } from '@/contexts/AppContext';
 import { useToast } from "@/hooks/use-toast";
 import Image from 'next/image';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 
 const PROFILE_IMAGE_STORAGE_KEY = 'betMaestroProfileImage';
 
@@ -19,6 +19,7 @@ export default function ProfilePage() {
   const [profileImageSrc, setProfileImageSrc] = useState<string | null>(appContextProfileImage);
   const [isHoveringImage, setIsHoveringImage] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const getDefaultProfileImage = useCallback(() => {
     if (user) {
@@ -92,6 +93,16 @@ export default function ProfilePage() {
     });
   };
 
+  const handleImageContainerClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileSelected = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files.length > 0) {
+      handleImageUpload(event.target.files[0]);
+    }
+  };
+
   if (!user) {
     return (
       <div className="container mx-auto p-4 text-center">
@@ -124,8 +135,15 @@ export default function ProfilePage() {
 
         <Card className="w-full max-w-md shadow-xl bg-card">
           <CardHeader className="text-center items-center flex flex-col">
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileSelected}
+              accept="image/*"
+              className="hidden"
+            />
             <div
-              className={`relative mb-4 w-32 h-32 rounded-full border-4 group transition-all duration-200 ease-in-out
+              className={`relative mb-4 w-32 h-32 rounded-full border-4 group transition-all duration-200 ease-in-out cursor-pointer
                 ${isDragging ? 'border-primary scale-105 shadow-lg' : 'border-muted hover:border-primary'}
                 ${isCustomImage ? 'border-primary' : ''}`}
               onDragOver={handleDragOver}
@@ -133,6 +151,10 @@ export default function ProfilePage() {
               onDrop={handleDrop}
               onMouseEnter={() => setIsHoveringImage(true)}
               onMouseLeave={() => setIsHoveringImage(false)}
+              onClick={handleImageContainerClick}
+              role="button"
+              tabIndex={0}
+              aria-label="Upload profile image"
             >
               {profileImageSrc && (
                 <Image
@@ -146,13 +168,13 @@ export default function ProfilePage() {
                 />
               )}
               {!isCustomImage && !isDragging && (
-                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
                     <UploadCloud className="h-8 w-8 text-white mb-1" />
-                    <p className="text-xs text-white text-center">Drop image</p>
+                    <p className="text-xs text-white text-center">Click or drop image</p>
                  </div>
               )}
               {isDragging && (
-                <div className="absolute inset-0 flex items-center justify-center bg-primary/30 rounded-full">
+                <div className="absolute inset-0 flex items-center justify-center bg-primary/30 rounded-full pointer-events-none">
                   <UploadCloud className="h-10 w-10 text-primary-foreground" />
                 </div>
               )}
@@ -161,14 +183,17 @@ export default function ProfilePage() {
                   variant="destructive"
                   size="icon"
                   className="absolute top-0 right-0 h-8 w-8 rounded-full"
-                  onClick={handleDeleteImage}
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent triggering the container click
+                    handleDeleteImage();
+                  }}
                   aria-label="Delete profile image"
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
               )}
               {isPremium && (
-                <div className="absolute -bottom-2 -right-2 bg-accent text-accent-foreground p-2 rounded-full shadow-lg z-10">
+                <div className="absolute -bottom-2 -right-2 bg-accent text-accent-foreground p-2 rounded-full shadow-lg z-10 pointer-events-none">
                   <Gem className="h-5 w-5" />
                 </div>
               )}
@@ -218,3 +243,4 @@ export default function ProfilePage() {
     </div>
   );
 }
+
