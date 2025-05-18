@@ -112,7 +112,7 @@ const TopMenu: React.FC = () => {
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-[280px] sm:w-[320px] bg-card p-0 flex flex-col">
-              <SheetHeader className="sr-only"> {/* Added sr-only as title is handled by SheetTitle */}
+              <SheetHeader className="sr-only"> 
                 <SheetTitle>Mobile Menu</SheetTitle>
               </SheetHeader>
               <div className="p-4 border-b">
@@ -143,7 +143,7 @@ const TopMenu: React.FC = () => {
                 </SheetClose>
               )}
               
-              <nav className="flex-grow p-4"> {/* Removed space-y-1 */}
+              <nav className="flex flex-col flex-grow p-4 gap-1">
                 <SheetClose asChild>
                   <Link href="/wallet" className="flex items-center p-3 rounded-md hover:bg-secondary group">
                     <Wallet className="mr-3 h-5 w-5 text-muted-foreground group-hover:text-primary" />
