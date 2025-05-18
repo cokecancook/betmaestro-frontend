@@ -7,7 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Badge } from '@/components/ui/badge';
 import { useAppContext } from '@/contexts/AppContext';
 import type { Bet } from '@/types';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -93,7 +92,6 @@ export default function MyBetsPage() {
           </CardFooter>
         </Card>
       ) : (
-        <ScrollArea className="h-[calc(100vh-20rem)]"> {/* Adjusted height if summary box is tall */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {placedBets.map((bet: Bet) => (
               <Card key={bet.id} className="shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col">
@@ -151,9 +149,7 @@ export default function MyBetsPage() {
               </Card>
             ))}
           </div>
-        </ScrollArea>
       )}
     </div>
   );
 }
-
