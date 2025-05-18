@@ -31,7 +31,7 @@ export default function SplashPage() {
         className="mb-8 rounded-full shadow-[0_0_130px_15px_rgba(251,146,60,0.5)] w-[200px] h-[200px] animate-glow-container-pulse overflow-hidden"
       >
         <Image
-          src="/ball-brain.png"
+          src="/ball-brain.png" 
           alt="BetMaestro Ball Brain Logo"
           width={300}
           height={300}
@@ -42,7 +42,7 @@ export default function SplashPage() {
       </div>
       <div className="mb-2">
         <Image
-          src="/logo-white.png"
+          src="/logo-white.svg"
           alt="BetMaestro"
           width={220} 
           height={40} 
@@ -61,4 +61,3 @@ export default function SplashPage() {
     </div>
   );
 }
-
