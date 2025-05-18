@@ -28,7 +28,7 @@ export default function SplashPage() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 animate-fadeIn bg-background">
       <div 
-        className="mb-8 rounded-full shadow-[0_0_130px_15px_rgba(251,146,60,0.5)] w-[200px] h-[200px] animate-glow-container-pulse overflow-hidden"
+        className="mb-8 rounded-full shadow-[0_0_130px_15px_rgba(251,146,60,0.5)] w-[200px] h-[200px] animate-glow-container-pulse"
       >
         <Image
           src="/ball-brain.png" 
@@ -50,7 +50,7 @@ export default function SplashPage() {
           data-ai-hint="logo white text"
         />
       </div>
-      <p className="text-lg text-center text-muted-foreground mb-8">Your AI Betting Assistant</p>
+      <p className="text-center text-muted-foreground mb-8">Your AI Betting Assistant</p>
       <Button 
         onClick={handleContinue} 
         size="lg" 
