@@ -41,13 +41,14 @@ export default function LoginPage() {
       <Link href="/" aria-label="Go to splash screen">
         <BetMaestroLogo className="text-5xl mb-8" />
       </Link>
-      <Card className="w-full max-w-md shadow-xl">
+      <Card className="w-full max-w-md shadow-xl shadow-[0_0_130px_-15px_rgba(251,146,60,0.5)]">
         <CardHeader className="text-center">
           <CardDescription>Service available only for members.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <Button
-            className="w-full text-lg py-6 bg-primary hover:bg-primary/90"
+            variant="outline"
+            className="w-full text-lg py-6 border-white text-white hover:bg-primary/10"
             onClick={() => handleLogin(false)}
             disabled={isSubmitting}
             aria-label="Login to your BetMaestro account"
@@ -57,7 +58,7 @@ export default function LoginPage() {
           </Button>
           <Button
             variant="outline"
-            className="w-full text-lg py-6 border-primary text-primary hover:bg-primary/10"
+            className="w-full text-lg py-6 border-gray-600 text-gray-600 hover:bg-purple-700/10 hover:border-purple-700"
             onClick={() => handleLogin(true)}
             disabled={isSubmitting}
             aria-label="Preview BetMaestro with dummy data"
