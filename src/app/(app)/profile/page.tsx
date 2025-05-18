@@ -2,13 +2,14 @@
 "use client";
 
 import Link from 'next/link';
-import { ArrowLeft, UserCircle, ShieldCheck, ShieldAlert, Gem, Sparkles, Trash2, UploadCloud } from 'lucide-react';
+import { ArrowLeft, UserCircle, ShieldAlert, Gem, Sparkles, Trash2, UploadCloud } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { useAppContext } from '@/contexts/AppContext';
 import { useToast } from "@/hooks/use-toast";
 import Image from 'next/image';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { cn } from '@/lib/utils';
 
 const PROFILE_IMAGE_STORAGE_KEY = 'betMaestroProfileImage';
 
@@ -184,7 +185,7 @@ export default function ProfilePage() {
                   size="icon"
                   className="absolute top-0 right-0 h-8 w-8 rounded-full"
                   onClick={(e) => {
-                    e.stopPropagation(); // Prevent triggering the container click
+                    e.stopPropagation(); 
                     handleDeleteImage();
                   }}
                   aria-label="Delete profile image"
@@ -203,11 +204,10 @@ export default function ProfilePage() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="p-4 border rounded-lg bg-background/50">
-              <h3 className="text-lg font-semibold mb-2 text-foreground flex items-center">
-                {isPremium ? <ShieldCheck className="h-6 w-6 mr-2 text-green-500" /> : <ShieldAlert className="h-6 w-6 mr-2 text-yellow-500" />}
+              <h3 className="text-lg font-semibold mb-2 text-foreground">
                 Current Plan
               </h3>
-              <p className={`text-2xl font-bold ${isPremium ? 'text-primary' : 'text-muted-foreground'}`}>
+              <p className={`text-2xl font-bold ${isPremium ? 'text-accent' : 'text-primary'}`}>
                 {user.plan.charAt(0).toUpperCase() + user.plan.slice(1)}
               </p>
               <p className="text-sm text-muted-foreground mt-1">
@@ -219,8 +219,13 @@ export default function ProfilePage() {
 
             <Button
               size="lg"
-              className="w-full text-lg py-6"
               variant={isPremium ? "outline" : "default"}
+              className={cn(
+                "w-full text-lg py-6",
+                isPremium 
+                  ? "border-primary text-primary hover:bg-primary/10 hover:text-primary" 
+                  : "bg-accent text-accent-foreground hover:bg-accent/90"
+              )}
               onClick={handlePlanChange}
               aria-label={isPremium ? "Switch to Basic Plan" : "Activate Premium Plan"}
             >
@@ -243,4 +248,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
