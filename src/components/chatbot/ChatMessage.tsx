@@ -58,7 +58,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onOptionClick, isFir
       )}
       <div
         className={`max-w-xs md:max-w-md lg:max-w-lg p-3 rounded-xl shadow-md ${
-          isAI ? 'bg-card text-card-foreground rounded-bl-none' : 'bg-primary text-primary-foreground rounded-br-none'
+          isAI ? 'bg-card text-card-foreground rounded-tl-none' : 'bg-primary text-primary-foreground rounded-tr-none'
         }`}
       >
         {message.isLoading ? (
