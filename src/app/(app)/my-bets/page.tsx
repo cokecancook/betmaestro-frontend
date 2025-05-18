@@ -7,7 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Badge } from '@/components/ui/badge';
 import { useAppContext } from '@/contexts/AppContext';
 import type { Bet } from '@/types';
-import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -20,14 +19,13 @@ export default function MyBetsPage() {
 
   const getBetStatusBadgeVariant = (status?: 'won' | 'lost' | 'pending'): "default" | "destructive" | "secondary" | "outline" => {
     switch (status) {
-      case 'won': return "default";
+      case 'won': return "default"; // Will be overridden by cn for green style
       case 'lost': return "destructive";
       case 'pending': return "secondary";
       default: return "outline";
     }
   };
 
-  // Calculate summary statistics
   const totalBetsPlaced = placedBets.length;
   const totalGains = placedBets
     .filter(bet => bet.betResult === 'won' && typeof bet.betGain === 'number')
@@ -46,7 +44,7 @@ export default function MyBetsPage() {
 
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 lg:p-8">
+    <div className="container mx-auto p-4">
       <Link href="/landing" className="inline-flex items-center text-sm text-primary hover:underline mb-6 group">
         <ArrowLeft className="h-4 w-4 mr-1 transition-transform group-hover:-translate-x-1" />
         Back to Chat
@@ -54,7 +52,6 @@ export default function MyBetsPage() {
 
       <h1 className="text-3xl font-bold mb-6 text-center text-foreground">My Placed Bets</h1>
 
-      {/* Betting Summary Card */}
       {placedBets.length > 0 && (
         <Card className="mb-8 shadow-md bg-card">
           <CardHeader>
@@ -105,7 +102,7 @@ export default function MyBetsPage() {
                        variant={getBetStatusBadgeVariant(bet.betResult)} 
                        className={cn(
                          "capitalize shrink-0",
-                         bet.betResult === 'won' && "bg-green-500 text-white border-transparent hover:bg-green-600"
+                         bet.betResult === 'won' && "bg-green-600 text-white border-transparent hover:bg-green-700"
                        )}
                      >
                        {bet.betResult || 'Pending'}
@@ -134,7 +131,7 @@ export default function MyBetsPage() {
                    {(!bet.betResult || bet.betResult === 'pending') && (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Estimated Gain:</span>
-                      <span className="font-semibold text-blue-500"> {/* Or another color for pending */}
+                      <span className="font-semibold text-blue-500">
                         {formatCurrency((bet.betAmount * bet.odds) - bet.betAmount)}
                       </span>
                     </div>
@@ -167,4 +164,3 @@ export default function MyBetsPage() {
     </div>
   );
 }
-

@@ -15,9 +15,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ThemeToggle } from './ThemeToggle'; 
+import Image from 'next/image';
 
 const TopMenu: React.FC = () => {
-  const { user, balance, placedBets, logout } = useAppContext();
+  const { user, balance, placedBets, logout, theme } = useAppContext();
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(value);
@@ -27,7 +28,7 @@ const TopMenu: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-card shadow-sm">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
+      <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <Link href="/landing" aria-label="Go to BetMaestro landing page">
           <BetMaestroLogo />
         </Link>
@@ -88,4 +89,3 @@ const TopMenu: React.FC = () => {
 };
 
 export default TopMenu;
-

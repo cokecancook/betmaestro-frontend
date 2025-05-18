@@ -13,10 +13,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 const PROFILE_IMAGE_STORAGE_KEY = 'betMaestroProfileImage';
 
 export default function ProfilePage() {
-  const { user, setPlan, profileImage: appContextProfileImage, setProfileImage: setAppContextProfileImage } = useAppContext(); // Get profileImage and setter from context
+  const { user, setPlan, profileImage: appContextProfileImage, setProfileImage: setAppContextProfileImage } = useAppContext();
   const { toast } = useToast();
 
-  // Local state to manage src for Image component, initialized from context or localStorage
   const [profileImageSrc, setProfileImageSrc] = useState<string | null>(appContextProfileImage);
   const [isHoveringImage, setIsHoveringImage] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -29,13 +28,12 @@ export default function ProfilePage() {
   }, [user]);
 
   useEffect(() => {
-    // Sync local state with context or fallback to default
     const storedImage = localStorage.getItem(PROFILE_IMAGE_STORAGE_KEY);
     if (appContextProfileImage) {
       setProfileImageSrc(appContextProfileImage);
     } else if (storedImage) {
       setProfileImageSrc(storedImage);
-      setAppContextProfileImage(storedImage); // Update context if only in localStorage
+      setAppContextProfileImage(storedImage); 
     }
      else {
       setProfileImageSrc(getDefaultProfileImage());
@@ -49,8 +47,7 @@ export default function ProfilePage() {
       reader.onloadend = () => {
         const dataUri = reader.result as string;
         setProfileImageSrc(dataUri);
-        // localStorage.setItem(PROFILE_IMAGE_STORAGE_KEY, dataUri); // Context handles localStorage
-        setAppContextProfileImage(dataUri); // Update context
+        setAppContextProfileImage(dataUri); 
         toast({
           title: "Profile Image Updated",
           description: "Your new profile image has been set.",
@@ -88,8 +85,7 @@ export default function ProfilePage() {
   const handleDeleteImage = () => {
     const defaultImage = getDefaultProfileImage();
     setProfileImageSrc(defaultImage);
-    // localStorage.removeItem(PROFILE_IMAGE_STORAGE_KEY); // Context handles localStorage
-    setAppContextProfileImage(null); // Update context
+    setAppContextProfileImage(null); 
     toast({
       title: "Profile Image Removed",
       description: "Your profile image has been reset to default.",
@@ -98,7 +94,7 @@ export default function ProfilePage() {
 
   if (!user) {
     return (
-      <div className="container mx-auto p-8 text-center">
+      <div className="container mx-auto p-4 text-center">
         <p>Loading user profile...</p>
       </div>
     );
@@ -117,7 +113,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 lg:p-8">
+    <div className="container mx-auto p-4">
       <Link href="/landing" className="inline-flex items-center text-sm text-primary hover:underline mb-6 group">
         <ArrowLeft className="h-4 w-4 mr-1 transition-transform group-hover:-translate-x-1" />
         Back to Chat
