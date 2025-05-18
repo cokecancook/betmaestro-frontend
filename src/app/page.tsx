@@ -28,10 +28,10 @@ export default function SplashPage() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 animate-fadeIn bg-background">
       <div 
-        className="mb-8 rounded-full overflow-hidden shadow-[0_0_130px_15px_rgba(251,146,60,0.5)] w-[300px] h-[300px] animate-glow-container-pulse"
+        className="mb-8 rounded-full shadow-[0_0_130px_15px_rgba(251,146,60,0.5)] w-[200px] h-[200px] animate-glow-container-pulse"
       >
         <Image
-          src="/betmaestro-logo.png"
+          src="/ball-brain.png"
           alt="BetMaestro Logo"
           width={300}
           height={300}
