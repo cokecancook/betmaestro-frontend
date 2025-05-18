@@ -29,21 +29,21 @@ export default function SplashPage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4 animate-fadeIn">
+    <div className="flex flex-col items-center justify-center min-h-screen p-4 animate-fadeIn">
       <div className="mb-8">
         <Image
-          src="/betmaestro-logo.png"
+          src="/betmaestro-logo2.png"
           alt="BetMaestro Logo"
           width={300}
           height={300}
-          className="rounded-lg shadow-2xl"
+          className="rounded-[400px] shadow-2xl"
           priority // Important for LCP on a splash screen
           data-ai-hint="basketball brain"
         />
       </div>
       <p className="text-2xl font-semibold text-foreground">BetMaestro</p>
       <p className="text-lg text-muted-foreground mb-8">Your AI Betting Assistant</p>
-      <Button onClick={handleContinue} size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground">
+      <Button onClick={handleContinue} size="lg" className="bg-secondary hover:bg-secondary/90 text-primary-foreground">
         Continue
       </Button>
     </div>

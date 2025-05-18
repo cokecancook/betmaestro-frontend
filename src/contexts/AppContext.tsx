@@ -45,30 +45,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [useDummyData, setUseDummyData] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [theme, setThemeState] = useState<Theme>('light');
+  const [theme, setThemeState] = useState<Theme>('dark'); // Default to dark
   const [profileImage, setProfileImageState] = useState<string | null>(null); // Added state
   const router = useRouter();
 
   useEffect(() => {
     const persistedLogin = localStorage.getItem('betMaestroLoggedIn');
     const persistedDummy = localStorage.getItem('betMaestroUseDummy');
-    const persistedTheme = localStorage.getItem(THEME_KEY) as Theme | null;
     const persistedProfileImage = localStorage.getItem(PROFILE_IMAGE_STORAGE_KEY); // Load profile image
 
-    if (persistedTheme) {
-      setThemeState(persistedTheme);
-      if (persistedTheme === 'dark') {
-        document.documentElement.classList.add('dark');
-      }
-    } else {
-        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        const initialTheme = prefersDark ? 'dark' : 'light';
-        setThemeState(initialTheme);
-        localStorage.setItem(THEME_KEY, initialTheme);
-        if (initialTheme === 'dark') {
-            document.documentElement.classList.add('dark');
+    // Always start with dark theme
+    const initialTheme: Theme = 'dark';
+    setThemeState(initialTheme);
+    localStorage.setItem(THEME_KEY, initialTheme); // Save 'dark' as the initial stored theme
+    document.documentElement.classList.add('dark');
+
+    // If a theme was previously set by the user during this session and it's different, apply it
+    const sessionTheme = localStorage.getItem(THEME_KEY) as Theme | null;
+    if (sessionTheme && sessionTheme !== initialTheme) {
+        setThemeState(sessionTheme);
+        if (sessionTheme === 'light') {
+            document.documentElement.classList.remove('dark');
         }
+    } else {
+        // Ensure dark class if sessionTheme is dark or null (which defaults to our initialTheme of dark)
+        document.documentElement.classList.add('dark');
     }
+
 
     if (persistedProfileImage) {
       setProfileImageState(persistedProfileImage); // Set initial profile image
