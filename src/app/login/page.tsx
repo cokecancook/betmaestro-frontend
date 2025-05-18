@@ -40,8 +40,7 @@ export default function LoginPage() {
       <BetMaestroLogo className="text-5xl mb-8" />
       <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="text-center">
-          <CardTitle className="text-3xl">Welcome to BetMaestro</CardTitle>
-          <CardDescription>Your AI-Powered Betting Assistant</CardDescription>
+          <CardDescription>Welcome To Your AI-Powered Betting Assistant</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <Button
@@ -61,7 +60,7 @@ export default function LoginPage() {
             aria-label="Preview BetMaestro with dummy data"
           >
             {isSubmitting && useAppContext().useDummyData ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : null}
-            Preview with Dummy Data
+            Premium Login
           </Button>
         </CardContent>
       </Card>

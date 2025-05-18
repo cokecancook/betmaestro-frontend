@@ -38,7 +38,7 @@ export default function SplashPage() {
     <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4 animate-fadeIn">
       <div className="mb-8">
         <Image 
-          src="https://placehold.co/200x200.png" 
+          src="/betmaestro-logo.png" 
           alt="BetMaestro Logo" 
           width={200} 
           height={200} 
@@ -52,3 +52,4 @@ export default function SplashPage() {
     </div>
   );
 }
+
