@@ -1,3 +1,4 @@
+
 import { cn } from "@/lib/utils"
 
 function Skeleton({
@@ -6,6 +7,7 @@ function Skeleton({
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
+      suppressHydrationWarning
       className={cn("animate-pulse rounded-md bg-muted", className)}
       {...props}
     />
