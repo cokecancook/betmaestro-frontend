@@ -24,7 +24,7 @@ import { ThemeToggle } from './ThemeToggle';
 import Image from 'next/image';
 
 const TopMenu: React.FC = () => {
-  const { user, balance, placedBets, logout, theme } = useAppContext();
+  const { user, balance, placedBets, logout, theme, setTheme, profileImage } = useAppContext();
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(value);
@@ -63,7 +63,11 @@ const TopMenu: React.FC = () => {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0 text-foreground hover:text-primary hover:bg-transparent">
-                   <UserCircle className="h-7 w-7" />
+                  {profileImage ? (
+                    <Image src={profileImage} alt={user.name} width={32} height={32} className="rounded-full object-cover h-8 w-8" />
+                  ) : (
+                    <UserCircle className="h-7 w-7" />
+                  )}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
@@ -114,12 +118,23 @@ const TopMenu: React.FC = () => {
               </div>
 
               {user && (
-                <div className="p-4 border-b">
-                  <p className="text-base font-semibold leading-none text-foreground">{user.name}</p>
-                  <p className="text-sm leading-none text-muted-foreground mt-1">
-                    {user.plan.charAt(0).toUpperCase() + user.plan.slice(1)} Plan
-                  </p>
-                </div>
+                <SheetClose asChild>
+                  <Link href="/profile">
+                    <div className="p-4 border-b flex items-center justify-between hover:bg-secondary cursor-pointer group">
+                      <div>
+                        <p className="text-base font-semibold leading-none text-foreground group-hover:text-primary">{user.name}</p>
+                        <p className="text-sm leading-none text-muted-foreground mt-1 group-hover:text-primary/80">
+                          {user.plan.charAt(0).toUpperCase() + user.plan.slice(1)} Plan
+                        </p>
+                      </div>
+                      {profileImage ? (
+                         <Image src={profileImage} alt={user.name} width={32} height={32} className="rounded-full object-cover h-8 w-8" />
+                      ) : (
+                        <UserCircle className="h-7 w-7 text-muted-foreground group-hover:text-primary" />
+                      )}
+                    </div>
+                  </Link>
+                </SheetClose>
               )}
               
               <nav className="flex-grow p-4 space-y-1">
@@ -141,27 +156,26 @@ const TopMenu: React.FC = () => {
                     )}
                   </Link>
                 </SheetClose>
-
-                <SheetClose asChild>
-                  <Link href="/profile" className="flex items-center p-3 rounded-md hover:bg-secondary group">
-                    <UserCircle className="mr-3 h-5 w-5 text-muted-foreground group-hover:text-primary" />
-                    <span className="text-foreground group-hover:text-primary">Profile</span>
-                  </Link>
-                </SheetClose>
                 
-                <div className="flex items-center justify-between p-3 rounded-md hover:bg-secondary group">
+                <div 
+                  className="flex items-center justify-between p-3 rounded-md hover:bg-secondary group cursor-pointer"
+                  onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+                >
                     <div className="flex items-center">
                          {theme === 'light' ? <Sun className="mr-3 h-5 w-5 text-muted-foreground group-hover:text-primary" /> : <Moon className="mr-3 h-5 w-5 text-muted-foreground group-hover:text-primary"/>}
                         <span className="text-foreground group-hover:text-primary">Theme</span>
                     </div>
-                  <ThemeToggle />
+                     {/* ThemeToggle button removed from here as the whole row is now the toggle */}
                 </div>
               </nav>
 
               {user && (
                 <div className="p-4 border-t mt-auto">
                   <SheetClose asChild>
-                    <Button variant="ghost" onClick={logout} className="w-full justify-start p-3 text-destructive hover:bg-destructive/10 hover:text-destructive-foreground focus:text-destructive-foreground">
+                    <Button variant="ghost" onClick={logout} className="w-full justify-start p-3 text-destructive hover:bg-destructive/10 hover:text-destructive focus:bg-destructive focus:text-destructive-foreground">
                       <LogOut className="mr-3 h-5 w-5" />
                       Log out
                     </Button>
