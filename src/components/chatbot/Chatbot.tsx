@@ -276,7 +276,7 @@ const Chatbot: React.FC = () => {
         } else if (text.toLowerCase() === 'end_chat') {
           removeAiTypingPlaceholder();
           addMessage('ai', "Thanks for using BetMaestro! Have a great day.");
-          setChatState('ERROR_GENERIC'); 
+          setChatState('IDLE_AFTER_NO'); // Keep input active
         } else {
           removeAiTypingPlaceholder();
           addMessage('ai', "Sorry, I didn't quite get that. Please choose an option or type 'new bet' or 'end chat'.", undefined,  [{label: "Start new bet", value:"new_bet"}, {label: "No, that's all", value:"end_chat"}]);
@@ -315,5 +315,7 @@ const Chatbot: React.FC = () => {
 };
 
 export default Chatbot;
+
+    
 
     
