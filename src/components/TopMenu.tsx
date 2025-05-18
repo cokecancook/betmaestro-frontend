@@ -112,8 +112,8 @@ const TopMenu: React.FC = () => {
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-[280px] sm:w-[320px] bg-card p-0 flex flex-col">
-              <SheetHeader>
-                <SheetTitle className="sr-only">Mobile Menu</SheetTitle>
+              <SheetHeader className="sr-only"> {/* Added sr-only as title is handled by SheetTitle */}
+                <SheetTitle>Mobile Menu</SheetTitle>
               </SheetHeader>
               <div className="p-4 border-b">
                 <SheetClose asChild>
@@ -125,8 +125,8 @@ const TopMenu: React.FC = () => {
 
               {user && (
                 <SheetClose asChild>
-                  <Link href="/profile">
-                    <div className="p-4 border-b flex items-center justify-between hover:bg-secondary cursor-pointer group">
+                  <Link href="/profile" className="block p-4 border-b hover:bg-secondary cursor-pointer group">
+                    <div className="flex items-center justify-between">
                       <div>
                         <p className="text-base font-semibold leading-none text-foreground group-hover:text-primary">{user.name}</p>
                         <p className="text-sm leading-none text-muted-foreground mt-1 group-hover:text-primary/80">
@@ -143,7 +143,7 @@ const TopMenu: React.FC = () => {
                 </SheetClose>
               )}
               
-              <nav className="flex-grow p-4 space-y-1">
+              <nav className="flex-grow p-4"> {/* Removed space-y-1 */}
                 <SheetClose asChild>
                   <Link href="/wallet" className="flex items-center p-3 rounded-md hover:bg-secondary group">
                     <Wallet className="mr-3 h-5 w-5 text-muted-foreground group-hover:text-primary" />
@@ -196,4 +196,3 @@ const TopMenu: React.FC = () => {
 };
 
 export default TopMenu;
-
