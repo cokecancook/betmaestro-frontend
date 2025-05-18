@@ -3,6 +3,7 @@
 
 /**
  * @fileOverview A betting strategy AI agent.
+ * This version fetches dummy betting suggestions from a JSON file.
  *
  * - generateBettingStrategy - A function that handles the betting strategy generation process.
  * - GenerateBettingStrategyInput - The input type for the generateBettingStrategy function.
@@ -12,6 +13,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import type { SuggestedBet, GenerateBettingStrategyOutput as OutputType } from '@/types';
+import dummyBetSuggestionsData from '@/data/dummy-bet-strategy.json';
 
 const GenerateBettingStrategyInputSchema = z.object({
   walletBalance: z
@@ -23,6 +25,7 @@ const GenerateBettingStrategyInputSchema = z.object({
 });
 export type GenerateBettingStrategyInput = z.infer<typeof GenerateBettingStrategyInputSchema>;
 
+// This schema is used by the flow definition and should match the `SuggestedBet` type.
 const SuggestedBetSchema = z.object({
   gameDate: z.string().describe('The date of the game (DD/MM/YYYY).'),
   homeTeam: z.string().describe('The home team name.'),
@@ -36,7 +39,7 @@ const SuggestedBetSchema = z.object({
 
 const GenerateBettingStrategyOutputSchema = z.object({
   strategyDescription: z.string().describe('A detailed betting strategy based on the provided wallet balance and bet amount, focusing on the specified game and betting on the Pacers.'),
-  suggestedBets: z.array(SuggestedBetSchema).describe('An array of 3 suggested bets for the specified game, each with a different house and justification, focused on the Pacers winning, and summing up to the total bet amount.'),
+  suggestedBets: z.array(SuggestedBetSchema).describe('An array of up to 3 suggested bets for the specified game, each with a different house and justification, focused on the Pacers winning, and summing up to the total bet amount.'),
   riskAssessment: z.string().describe('An assessment of the risk associated with betting on the Pacers for the specified game.'),
 });
 export type GenerateBettingStrategyOutput = z.infer<typeof GenerateBettingStrategyOutputSchema>;
@@ -46,6 +49,15 @@ export async function generateBettingStrategy(input: GenerateBettingStrategyInpu
   return generateBettingStrategyFlow(input);
 }
 
+function shuffleArray<T>(array: T[]): T[] {
+  const newArray = [...array];
+  for (let i = newArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArray[i], newArray[j]] = [newArray[j], newArray[i]]; // Swap elements
+  }
+  return newArray;
+}
+
 const generateBettingStrategyFlow = ai.defineFlow(
   {
     name: 'generateBettingStrategyFlow',
@@ -53,72 +65,80 @@ const generateBettingStrategyFlow = ai.defineFlow(
     outputSchema: GenerateBettingStrategyOutputSchema,
   },
   async (input: GenerateBettingStrategyInput): Promise<GenerateBettingStrategyOutput> => {
+    const allDummyBets: SuggestedBet[] = dummyBetSuggestionsData.bets as SuggestedBet[];
+    const shuffledBets = shuffleArray(allDummyBets);
+    
+    // Select up to 3 bets
+    const selectedRawBets = shuffledBets.slice(0, Math.min(3, shuffledBets.length));
+    
     const totalBetAmount = input.betAmount;
-    const gameDate = "22/05/2025";
-    const homeTeam = "New York Knicks";
-    const awayTeam = "Indiana Pacers";
-    const betOnTeam = "Indiana Pacers";
+    const finalSuggestedBets: SuggestedBet[] = [];
 
-    // Distribute the bet amount
-    let bet1Amount = Math.floor(totalBetAmount / 3);
-    let bet2Amount = Math.floor(totalBetAmount / 3);
-    let bet3Amount = totalBetAmount - bet1Amount - bet2Amount;
+    if (selectedRawBets.length > 0 && totalBetAmount > 0) {
+      if (selectedRawBets.length === 1) {
+        finalSuggestedBets.push({ ...selectedRawBets[0], betAmount: totalBetAmount });
+      } else if (selectedRawBets.length === 2) {
+        const amount1 = Math.floor(totalBetAmount / 2);
+        const amount2 = totalBetAmount - amount1;
+        if (amount1 > 0) finalSuggestedBets.push({ ...selectedRawBets[0], betAmount: amount1 });
+        // Ensure amount2 is only added if it's positive and there's a second bet to assign it to
+        if (amount2 > 0 && selectedRawBets.length > 1) finalSuggestedBets.push({ ...selectedRawBets[1], betAmount: amount2 });
+         // If amount1 took everything (e.g. total = 0.5, amount1 = 0, amount2 = 0.5), adjust
+        if (finalSuggestedBets.length === 0 && amount2 > 0) { // Only amount2 was positive
+             finalSuggestedBets.push({ ...selectedRawBets[0], betAmount: amount2 });
+        } else if (finalSuggestedBets.length === 1 && finalSuggestedBets[0].betAmount === 0 && amount2 > 0) {
+            finalSuggestedBets[0].betAmount = amount2;
+        }
 
-    // Ensure no bet amount is zero if totalBetAmount is very small but positive
-    // This logic can be refined for very small amounts, but for typical bets it should work.
-    if (totalBetAmount > 0 && bet1Amount === 0) bet1Amount = totalBetAmount; // Put all on one bet if too small for 3.
-    if (bet1Amount > 0 && bet2Amount === 0 && bet3Amount === 0 && bet1Amount !== totalBetAmount ) { // if only bet1 got amount
-        bet2Amount = Math.floor(bet1Amount / 2);
-        bet1Amount = bet1Amount - bet2Amount;
-        if (bet1Amount + bet2Amount !== totalBetAmount) { // adjust if needed
-           const diff = totalBetAmount - (bet1Amount+bet2Amount);
-           bet1Amount += diff;
+
+      } else { // 3 bets selected
+        let amount1 = Math.floor(totalBetAmount / 3);
+        let amount2 = Math.floor(totalBetAmount / 3);
+        let amount3 = totalBetAmount - amount1 - amount2;
+
+        // Handle cases where totalBetAmount is small (e.g., 1 or 2)
+        if (totalBetAmount === 1) {
+            amount1 = 1; amount2 = 0; amount3 = 0;
+        } else if (totalBetAmount === 2) {
+            amount1 = 1; amount2 = 1; amount3 = 0;
+        }
+        
+        if (amount1 > 0) finalSuggestedBets.push({ ...selectedRawBets[0], betAmount: amount1 });
+        if (amount2 > 0 && selectedRawBets.length > 1) finalSuggestedBets.push({ ...selectedRawBets[1], betAmount: amount2 });
+        if (amount3 > 0 && selectedRawBets.length > 2) finalSuggestedBets.push({ ...selectedRawBets[2], betAmount: amount3 });
+      }
+    }
+    
+    // If, after distribution, finalSuggestedBets is empty but totalBetAmount was positive (e.g. due to rounding very small numbers)
+    // assign the totalBetAmount to the first selectedRawBet if available.
+    if (finalSuggestedBets.length === 0 && totalBetAmount > 0 && selectedRawBets.length > 0) {
+        finalSuggestedBets.push({ ...selectedRawBets[0], betAmount: totalBetAmount });
+    }
+    
+    // Ensure sum matches totalBetAmount, adjust the last bet if necessary and possible
+    const currentSum = finalSuggestedBets.reduce((acc, bet) => acc + bet.betAmount, 0);
+    if (currentSum !== totalBetAmount && finalSuggestedBets.length > 0) {
+        const difference = totalBetAmount - currentSum;
+        finalSuggestedBets[finalSuggestedBets.length - 1].betAmount += difference;
+        // Ensure the last bet amount is not negative after adjustment
+        if (finalSuggestedBets[finalSuggestedBets.length-1].betAmount < 0) {
+            // This case should ideally not happen with proper distribution, but as a safeguard:
+            // Re-evaluate or simplify, e.g. put all on first bet if complex adjustment fails.
+            // For simplicity here, we'll assume positive amounts or single bet assignment handles it.
         }
     }
-     if (bet1Amount <= 0 && bet2Amount <=0 && bet3Amount <= 0 && totalBetAmount > 0) {
-        bet1Amount = totalBetAmount; // failsafe
-    }
+     // Filter out any bets that might have ended up with a zero or negative amount after all adjustments.
+    const trulyFinalBets = finalSuggestedBets.filter(bet => bet.betAmount > 0);
 
 
-    const suggestedBets: SuggestedBet[] = [];
-
-    if (bet1Amount > 0) {
-        suggestedBets.push({
-          gameDate, homeTeam, awayTeam,
-          betAmount: bet1Amount,
-          odds: 2.50, // Dummy odds
-          house: "bet365",
-          betWinnerTeam: betOnTeam,
-          justification: "Pacers have a strong offensive lineup that could challenge the Knicks, especially if their key players are in form. bet365 offers competitive odds."
-        });
-    }
-    if (bet2Amount > 0) {
-        suggestedBets.push({
-          gameDate, homeTeam, awayTeam,
-          betAmount: bet2Amount,
-          odds: 2.65, // Dummy odds
-          house: "Betfair",
-          betWinnerTeam: betOnTeam,
-          justification: "Betfair Exchange often provides value on underdog moneyline bets. Pacers' pace could disrupt the Knicks' rhythm."
-        });
-    }
-     if (bet3Amount > 0 && suggestedBets.length < 3) {
-        suggestedBets.push({
-          gameDate, homeTeam, awayTeam,
-          betAmount: bet3Amount,
-          odds: 2.40, // Dummy odds
-          house: "Betway",
-          betWinnerTeam: betOnTeam,
-          justification: "Consider diversifying with Betway. The Pacers have shown resilience in away games against tough opponents this season."
-        });
-    }
-    // If totalBetAmount was small and resulted in less than 3 bets, fill remaining slots if needed or adjust logic above.
-    // For this dummy, we'll ensure we have at least one bet if totalBetAmount > 0.
+    const gameDateForDesc = trulyFinalBets.length > 0 ? trulyFinalBets[0].gameDate : "the upcoming game";
+    const numBetsForDesc = trulyFinalBets.length;
 
     return {
-      strategyDescription: `This dummy strategy focuses on betting on the Indiana Pacers to win against the New York Knicks on ${gameDate}. The total bet of ${totalBetAmount}€ has been distributed across different houses to potentially maximize returns. Remember, betting on an away team can be risky.`,
-      suggestedBets,
-      riskAssessment: `Medium to High Risk. Betting on the Indiana Pacers as the away team against the Knicks involves significant risk. The Knicks are typically strong at home. However, the potential returns are higher. Evaluate team news and player availability before confirming.`,
+      strategyDescription: `This betting strategy for the Knicks vs Pacers game on ${gameDateForDesc} focuses on the Indiana Pacers. Your total bet of ${totalBetAmount.toFixed(2)}€ is distributed across ${numBetsForDesc} randomly selected suggestion(s).`,
+      suggestedBets: trulyFinalBets,
+      riskAssessment: `This is a diversified strategy based on randomly selected dummy bets. All betting involves risk. Please bet responsibly. Odds and justifications are for illustrative purposes. Each bet is on the Indiana Pacers to win.`,
     };
   }
 );
+

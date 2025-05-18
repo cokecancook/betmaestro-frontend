@@ -1,0 +1,104 @@
+{
+  "bets": [
+    {
+      "gameDate": "22/05/2025",
+      "homeTeam": "New York Knicks",
+      "awayTeam": "Indiana Pacers",
+      "betAmount": 1,
+      "odds": 2.45,
+      "house": "bet365",
+      "betWinnerTeam": "Indiana Pacers",
+      "justification": "Pacers show strong potential as underdogs, and bet365 offers competitive odds for this matchup. Their fast pace could disrupt the Knicks."
+    },
+    {
+      "gameDate": "22/05/2025",
+      "homeTeam": "New York Knicks",
+      "awayTeam": "Indiana Pacers",
+      "betAmount": 1,
+      "odds": 2.50,
+      "house": "Betfair",
+      "betWinnerTeam": "Indiana Pacers",
+      "justification": "Betfair Exchange often has good value for underdog money lines. Pacers' recent away form suggests they can cover."
+    },
+    {
+      "gameDate": "22/05/2025",
+      "homeTeam": "New York Knicks",
+      "awayTeam": "Indiana Pacers",
+      "betAmount": 1,
+      "odds": 2.35,
+      "house": "Betway",
+      "betWinnerTeam": "Indiana Pacers",
+      "justification": "Betway provides solid odds. Consider the Pacers' offensive capabilities against the Knicks' defense."
+    },
+    {
+      "gameDate": "22/05/2025",
+      "homeTeam": "New York Knicks",
+      "awayTeam": "Indiana Pacers",
+      "betAmount": 1,
+      "odds": 2.55,
+      "house": "bwin",
+      "betWinnerTeam": "Indiana Pacers",
+      "justification": "bwin's odds for Pacers reflect a good potential return. Their bench depth could be a deciding factor."
+    },
+    {
+      "gameDate": "22/05/2025",
+      "homeTeam": "New York Knicks",
+      "awayTeam": "Indiana Pacers",
+      "betAmount": 1,
+      "odds": 2.40,
+      "house": "DAZN Bet",
+      "betWinnerTeam": "Indiana Pacers",
+      "justification": "DAZN Bet offers an alternative. Pacers' ability to perform under pressure in away games makes them a tempting pick."
+    },
+    {
+      "gameDate": "22/05/2025",
+      "homeTeam": "New York Knicks",
+      "awayTeam": "Indiana Pacers",
+      "betAmount": 1,
+      "odds": 2.60,
+      "house": "888sport",
+      "betWinnerTeam": "Indiana Pacers",
+      "justification": "888sport's higher odds might appeal for a riskier bet. Key player matchups could swing in favor of the Pacers."
+    },
+    {
+      "gameDate": "22/05/2025",
+      "homeTeam": "New York Knicks",
+      "awayTeam": "Indiana Pacers",
+      "betAmount": 1,
+      "odds": 2.30,
+      "house": "Bet442",
+      "betWinnerTeam": "Indiana Pacers",
+      "justification": "Bet442 may offer unique lines. Look for Pacers to exploit any weaknesses in the Knicks' home game."
+    },
+    {
+      "gameDate": "22/05/2025",
+      "homeTeam": "New York Knicks",
+      "awayTeam": "Indiana Pacers",
+      "betAmount": 1,
+      "odds": 2.48,
+      "house": "Unibet",
+      "betWinnerTeam": "Indiana Pacers",
+      "justification": "Unibet is another option. Pacers' three-point shooting could be key against the Knicks."
+    },
+    {
+      "gameDate": "22/05/2025",
+      "homeTeam": "New York Knicks",
+      "awayTeam": "Indiana Pacers",
+      "betAmount": 1,
+      "odds": 2.52,
+      "house": "LeoVegas",
+      "betWinnerTeam": "Indiana Pacers",
+      "justification": "LeoVegas sometimes has competitive underdog odds. Consider recent head-to-head statistics."
+    },
+    {
+      "gameDate": "22/05/2025",
+      "homeTeam": "New York Knicks",
+      "awayTeam": "Indiana Pacers",
+      "betAmount": 1,
+      "odds": 2.38,
+      "house": "William Hill",
+      "betWinnerTeam": "Indiana Pacers",
+      "justification": "William Hill is a well-known bookmaker. Pacers' consistency in recent games makes them a viable choice."
+    }
+  ]
+}
