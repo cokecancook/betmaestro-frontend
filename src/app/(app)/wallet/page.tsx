@@ -32,7 +32,7 @@ export default function WalletPage() {
       </Link>
 
       <div className="flex flex-col items-center">
-        <h1 className="text-3xl font-bold mb-8 text-center text-foreground">My Wallet</h1>
+        <h1 className="text-3xl font-bold mb-6 text-center text-foreground">My Wallet</h1>
         
         <Card className="w-full max-w-md shadow-xl bg-card">
           <CardHeader className="text-center pb-4">

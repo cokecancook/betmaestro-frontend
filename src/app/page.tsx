@@ -26,19 +26,22 @@ export default function SplashPage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4 animate-fadeIn">
-      <div className="mb-8 rounded-full overflow-hidden shadow-[0_0_100px_0px_rgba(251,146,60,0.35)]">
+    <div className="flex flex-col items-center justify-center min-h-screen p-4 animate-fadeIn bg-background">
+      <div 
+        className="mb-8 rounded-full overflow-hidden shadow-[0_0_130px_15px_rgba(251,146,60,0.5)] w-[300px] h-[300px] animate-glow-container-pulse"
+      >
         <Image
-          src="/ball-brain.png"
+          src="/betmaestro-logo.png"
           alt="BetMaestro Logo"
           width={300}
           height={300}
+          className="object-cover w-full h-full animate-image-pulse"
           priority 
           data-ai-hint="basketball brain"
         />
       </div>
       <p className="text-2xl font-semibold text-foreground">BetMaestro</p>
-      <p className="text-lg text-muted-foreground mb-8">Your AI Betting Assistant</p>
+      <p className="text-lg text-center text-muted-foreground mb-8">Your AI Betting Assistant</p>
       <Button 
         onClick={handleContinue} 
         size="lg" 
