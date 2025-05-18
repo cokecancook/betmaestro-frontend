@@ -30,7 +30,7 @@ export default function LoginPage() {
   if (contextIsLoading || isLoggedIn) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <Loader2 className="h-12 w-12 animate-spin text-orange-500" />
       </div>
     );
   }
@@ -49,7 +49,7 @@ export default function LoginPage() {
             disabled={isSubmitting}
             aria-label="Login to your BetMaestro account"
           >
-            {isSubmitting && !useAppContext().useDummyData ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : null}
+            {isSubmitting && !useAppContext().useDummyData ? <Loader2 className="mr-2 h-5 w-5 animate-spin text-orange-500" /> : null}
             Login
           </Button>
           <Button
@@ -59,7 +59,7 @@ export default function LoginPage() {
             disabled={isSubmitting}
             aria-label="Preview BetMaestro with dummy data"
           >
-            {isSubmitting && useAppContext().useDummyData ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : null}
+            {isSubmitting && useAppContext().useDummyData ? <Loader2 className="mr-2 h-5 w-5 animate-spin text-orange-500" /> : null}
             Premium Login
           </Button>
         </CardContent>

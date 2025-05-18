@@ -20,9 +20,6 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onOptionClick }) => 
 
   const renderStrategy = (strategy: GenerateBettingStrategyOutput) => (
     <Card className="mt-2 bg-background/50 border-primary/50 shadow-md">
-      <CardHeader>
-        <CardTitle className="text-lg text-primary">Betting Strategy Recommendation</CardTitle>
-      </CardHeader>
       <CardContent className="space-y-3">
         <div>
           <h4 className="font-semibold text-foreground">Strategy Description:</h4>

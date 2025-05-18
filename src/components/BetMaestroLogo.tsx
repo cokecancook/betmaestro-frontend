@@ -1,6 +1,5 @@
 
 import type React from 'react';
-import Image from 'next/image';
 import { useAppContext } from '@/contexts/AppContext';
 import { cn } from '@/lib/utils';
 
@@ -14,17 +13,10 @@ const BetMaestroLogo: React.FC<{ className?: string }> = ({ className }) => {
 
   return (
     <div className={cn(wrapperClasses, className)}>
-      <Image
-        src="/ball-brain.png" // Assumes ball-brain.png is in the public folder
-        alt="BetMaestro Icon"
-        width={24} // A small, fixed size for the icon
-        height={24}
-        data-ai-hint="basketball brain icon"
-      />
       <span
         className={cn(
           // Color is theme-dependent. Text size is inherited from parent div.
-          theme === 'dark' ? 'text-white' : 'text-orange-500'
+          theme === 'dark' ? 'text-white' : 'text-foreground'
         )}
       >
         BetMaestro
