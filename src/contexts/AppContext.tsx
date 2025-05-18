@@ -20,7 +20,7 @@ interface AppContextType {
   useDummyData: boolean;
   isLoading: boolean;
   theme: Theme;
-  profileImage: string | null; // Added
+  profileImage: string | null;
   login: (preview?: boolean) => Promise<void>;
   logout: () => void;
   addBet: (bet: Bet) => void;
@@ -28,7 +28,7 @@ interface AppContextType {
   setPlan: (plan: 'basic' | 'premium') => void;
   updateBalance: (newBalance: number) => void;
   setTheme: (theme: Theme) => void;
-  setProfileImage: (imageUrl: string | null) => void; // Added
+  setProfileImage: (imageUrl: string | null) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -38,6 +38,22 @@ const CHAT_STATE_KEY = 'betMaestroChatState';
 const CHAT_BET_AMOUNT_KEY = 'betMaestroCurrentBetAmount';
 const THEME_KEY = 'betMaestroTheme';
 
+// Helper function to parse DD/MM/YYYY date string to Date object
+const parseGameDate = (dateStr: string): Date => {
+  const [day, month, year] = dateStr.split('/').map(Number);
+  return new Date(year, month - 1, day); // month is 0-indexed in Date constructor
+};
+
+// Helper function to sort bets by game date in descending order
+const sortBetsByGameDateDesc = (bets: Bet[]): Bet[] => {
+  return [...bets].sort((a, b) => {
+    const dateA = parseGameDate(a.gameDate);
+    const dateB = parseGameDate(b.gameDate);
+    return dateB.getTime() - dateA.getTime();
+  });
+};
+
+
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [balance, setBalance] = useState<number>(0);
@@ -45,22 +61,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [useDummyData, setUseDummyData] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [theme, setThemeState] = useState<Theme>('dark'); // Default to dark
-  const [profileImage, setProfileImageState] = useState<string | null>(null); // Added state
+  const [theme, setThemeState] = useState<Theme>('dark');
+  const [profileImage, setProfileImageState] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
     const persistedLogin = localStorage.getItem('betMaestroLoggedIn');
     const persistedDummy = localStorage.getItem('betMaestroUseDummy');
-    const persistedProfileImage = localStorage.getItem(PROFILE_IMAGE_STORAGE_KEY); // Load profile image
+    const persistedProfileImage = localStorage.getItem(PROFILE_IMAGE_STORAGE_KEY);
 
-    // Always start with dark theme
     const initialTheme: Theme = 'dark';
     setThemeState(initialTheme);
-    localStorage.setItem(THEME_KEY, initialTheme); // Save 'dark' as the initial stored theme
+    localStorage.setItem(THEME_KEY, initialTheme);
     document.documentElement.classList.add('dark');
 
-    // If a theme was previously set by the user during this session and it's different, apply it
     const sessionTheme = localStorage.getItem(THEME_KEY) as Theme | null;
     if (sessionTheme && sessionTheme !== initialTheme) {
         setThemeState(sessionTheme);
@@ -68,13 +82,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             document.documentElement.classList.remove('dark');
         }
     } else {
-        // Ensure dark class if sessionTheme is dark or null (which defaults to our initialTheme of dark)
         document.documentElement.classList.add('dark');
     }
 
 
     if (persistedProfileImage) {
-      setProfileImageState(persistedProfileImage); // Set initial profile image
+      setProfileImageState(persistedProfileImage);
     }
 
 
@@ -85,13 +98,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const data: DummyData = dummyDataJson;
         setUser(data.user);
         setBalance(data.balance);
-        setPlacedBets(data.placedBets);
+        setPlacedBets(sortBetsByGameDateDesc(data.placedBets));
       } else {
-        // For real users, if no specific user data is fetched, use a generic one
         const realUserName = localStorage.getItem('betMaestroUserName') || 'User';
         setUser({ id: 'default-user', name: realUserName, plan: 'basic' });
-        setBalance(1000); // Default balance for a new real user
-        setPlacedBets([]);
+        setBalance(1000); 
+        setPlacedBets([]); // Initially empty, will be sorted if bets are added
       }
       setIsLoggedIn(true);
     }
@@ -108,7 +120,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  const setProfileImage = (imageUrl: string | null) => { // Added function
+  const setProfileImage = (imageUrl: string | null) => {
     setProfileImageState(imageUrl);
     if (imageUrl) {
       localStorage.setItem(PROFILE_IMAGE_STORAGE_KEY, imageUrl);
@@ -132,27 +144,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const data: DummyData = dummyDataJson;
       setUser(data.user);
       setBalance(data.balance);
-      setPlacedBets(data.placedBets);
+      setPlacedBets(sortBetsByGameDateDesc(data.placedBets));
       setUseDummyData(true);
       localStorage.setItem('betMaestroUseDummy', 'true');
       loggedInUserName = data.user.name;
-      // Load profile image for dummy user if they had one (though unlikely for a generic dummy.json)
       const dummyUserProfileImage = localStorage.getItem(`${PROFILE_IMAGE_STORAGE_KEY}_${data.user.id}`);
       setProfileImageState(dummyUserProfileImage);
 
     } else {
-      // Potentially fetch user details here in a real app
-      loggedInUserName = 'Real User'; // Example name
+      loggedInUserName = 'Real User'; 
       setUser({ id: 'real-user', name: loggedInUserName, plan: 'basic' });
-      setBalance(500); // Example balance
-      setPlacedBets([]);
+      setBalance(500); 
+      setPlacedBets([]); // Initially empty, will be sorted if bets are added
       setUseDummyData(false);
       localStorage.setItem('betMaestroUseDummy', 'false');
-      // Load profile image for real user
-      const realUserProfileImage = localStorage.getItem(PROFILE_IMAGE_STORAGE_KEY); // General key for real user
+      const realUserProfileImage = localStorage.getItem(PROFILE_IMAGE_STORAGE_KEY);
       setProfileImageState(realUserProfileImage);
     }
-    localStorage.setItem('betMaestroUserName', loggedInUserName); // Store name for reloads
+    localStorage.setItem('betMaestroUserName', loggedInUserName);
     setIsLoggedIn(true);
     localStorage.setItem('betMaestroLoggedIn', 'true');
     setIsLoading(false);
@@ -168,10 +177,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setPlacedBets([]);
     setIsLoggedIn(false);
     setUseDummyData(false);
-    setProfileImageState(null); // Clear profile image on logout
-    // Note: We keep PROFILE_IMAGE_STORAGE_KEY in localStorage intentionally
-    // so it's remembered if the same user logs back in.
-    // If you want it cleared per session, add: localStorage.removeItem(PROFILE_IMAGE_STORAGE_KEY);
+    setProfileImageState(null);
     localStorage.removeItem('betMaestroLoggedIn');
     localStorage.removeItem('betMaestroUseDummy');
     localStorage.removeItem('betMaestroUserName');
@@ -180,7 +186,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [router]);
 
   const addBet = (bet: Bet) => {
-    setPlacedBets(prevBets => [...prevBets, bet]);
+    setPlacedBets(prevBets => sortBetsByGameDateDesc([...prevBets, bet]));
   };
 
   const rechargeWallet = (amount: number) => {
@@ -207,7 +213,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         useDummyData,
         isLoading,
         theme,
-        profileImage, // Added
+        profileImage,
         login,
         logout,
         addBet,
@@ -215,7 +221,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setPlan,
         updateBalance,
         setTheme,
-        setProfileImage, // Added
+        setProfileImage,
       }}
     >
       {children}
