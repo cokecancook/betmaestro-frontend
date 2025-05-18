@@ -36,7 +36,7 @@ export default function WalletPage() {
         
         <Card className="w-full max-w-md shadow-xl bg-card">
           <CardHeader className="text-center pb-4">
-            <Wallet className="h-12 w-12 text-primary mx-auto mb-2" /> {/* Changed icon to Wallet */}
+            <Wallet className="h-16 w-16 text-muted-foreground mx-auto mb-4" /> {/* Changed icon to Wallet, updated size and color */}
             <CardTitle className="text-2xl">Current Balance</CardTitle>
             <CardDescription>Your available funds for betting.</CardDescription>
           </CardHeader>
