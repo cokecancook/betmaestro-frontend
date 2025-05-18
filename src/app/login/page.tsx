@@ -40,7 +40,7 @@ export default function LoginPage() {
       <BetMaestroLogo className="text-5xl mb-8" />
       <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="text-center">
-          <CardDescription>Welcome To Your AI-Powered Betting Assistant</CardDescription>
+          <CardDescription>Service available only for members.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <Button
