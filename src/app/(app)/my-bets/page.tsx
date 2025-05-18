@@ -9,6 +9,7 @@ import { useAppContext } from '@/contexts/AppContext';
 import type { Bet } from '@/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import Image from 'next/image';
+import { Button } from '@/components/ui/button'; // Added import
 
 export default function MyBetsPage() {
   const { placedBets } = useAppContext();
