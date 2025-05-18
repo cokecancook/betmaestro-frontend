@@ -13,10 +13,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 const PROFILE_IMAGE_STORAGE_KEY = 'betMaestroProfileImage';
 
 export default function ProfilePage() {
-  const { user, setPlan } = useAppContext();
+  const { user, setPlan, profileImage: appContextProfileImage, setProfileImage: setAppContextProfileImage } = useAppContext(); // Get profileImage and setter from context
   const { toast } = useToast();
 
-  const [profileImageSrc, setProfileImageSrc] = useState<string | null>(null);
+  // Local state to manage src for Image component, initialized from context or localStorage
+  const [profileImageSrc, setProfileImageSrc] = useState<string | null>(appContextProfileImage);
   const [isHoveringImage, setIsHoveringImage] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -24,24 +25,22 @@ export default function ProfilePage() {
     if (user) {
       return `https://placehold.co/128x128.png?text=${user.name.substring(0,1).toUpperCase()}`;
     }
-    return 'https://placehold.co/128x128.png'; // Fallback if user is somehow null initially
+    return 'https://placehold.co/128x128.png';
   }, [user]);
 
   useEffect(() => {
+    // Sync local state with context or fallback to default
     const storedImage = localStorage.getItem(PROFILE_IMAGE_STORAGE_KEY);
-    if (storedImage) {
+    if (appContextProfileImage) {
+      setProfileImageSrc(appContextProfileImage);
+    } else if (storedImage) {
       setProfileImageSrc(storedImage);
-    } else {
+      setAppContextProfileImage(storedImage); // Update context if only in localStorage
+    }
+     else {
       setProfileImageSrc(getDefaultProfileImage());
     }
-  }, [getDefaultProfileImage]);
-
-  useEffect(() => {
-    // Update if user changes, but only if not a custom uploaded image
-    if (user && profileImageSrc && !profileImageSrc.startsWith('data:image/')) {
-        setProfileImageSrc(getDefaultProfileImage());
-    }
-  }, [user, profileImageSrc, getDefaultProfileImage]);
+  }, [appContextProfileImage, getDefaultProfileImage, setAppContextProfileImage]);
 
 
   const handleImageUpload = (file: File) => {
@@ -50,7 +49,8 @@ export default function ProfilePage() {
       reader.onloadend = () => {
         const dataUri = reader.result as string;
         setProfileImageSrc(dataUri);
-        localStorage.setItem(PROFILE_IMAGE_STORAGE_KEY, dataUri);
+        // localStorage.setItem(PROFILE_IMAGE_STORAGE_KEY, dataUri); // Context handles localStorage
+        setAppContextProfileImage(dataUri); // Update context
         toast({
           title: "Profile Image Updated",
           description: "Your new profile image has been set.",
@@ -88,7 +88,8 @@ export default function ProfilePage() {
   const handleDeleteImage = () => {
     const defaultImage = getDefaultProfileImage();
     setProfileImageSrc(defaultImage);
-    localStorage.removeItem(PROFILE_IMAGE_STORAGE_KEY);
+    // localStorage.removeItem(PROFILE_IMAGE_STORAGE_KEY); // Context handles localStorage
+    setAppContextProfileImage(null); // Update context
     toast({
       title: "Profile Image Removed",
       description: "Your profile image has been reset to default.",
@@ -145,7 +146,7 @@ export default function ProfilePage() {
                   height={128}
                   className="rounded-full object-cover w-full h-full"
                   data-ai-hint={isCustomImage ? "user uploaded" : "profile avatar"}
-                  key={profileImageSrc} // Force re-render if src changes
+                  key={profileImageSrc} 
                 />
               )}
               {!isCustomImage && !isDragging && (
@@ -221,4 +222,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-

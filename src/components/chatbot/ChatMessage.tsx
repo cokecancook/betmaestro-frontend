@@ -2,12 +2,12 @@
 "use client";
 
 import type React from 'react';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; // Added AvatarImage
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { ChatMessage as ChatMessageType, GenerateBettingStrategyOutput } from '@/types';
 import { Bot, User, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useAppContext } from '@/contexts/AppContext'; // Added import
+import { useAppContext } from '@/contexts/AppContext';
 
 interface ChatMessageProps {
   message: ChatMessageType;
@@ -15,7 +15,7 @@ interface ChatMessageProps {
 }
 
 const ChatMessage: React.FC<ChatMessageProps> = ({ message, onOptionClick }) => {
-  const { theme } = useAppContext();
+  const { theme, profileImage, user } = useAppContext(); // Get profileImage and user
   const isAI = message.sender === 'ai';
 
   const renderStrategy = (strategy: GenerateBettingStrategyOutput) => (
@@ -87,9 +87,13 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onOptionClick }) => 
       </div>
       {!isAI && (
         <Avatar className="h-8 w-8 shrink-0 self-start mt-1">
-          <AvatarFallback className="bg-primary">
-            <User size={20} className={theme === 'light' ? 'text-primary-foreground' : 'text-background'} />
-          </AvatarFallback>
+          {profileImage ? (
+            <AvatarImage src={profileImage} alt={user?.name || 'User'} className="object-cover"/>
+          ) : (
+            <AvatarFallback className="bg-primary">
+              <User size={20} className={theme === 'light' ? 'text-primary-foreground' : 'text-background'} />
+            </AvatarFallback>
+          )}
         </Avatar>
       )}
     </div>

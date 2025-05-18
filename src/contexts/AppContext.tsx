@@ -10,6 +10,8 @@ import dummyDataJson from '@/data/dummy.json'; // Import as a module
 
 type Theme = 'light' | 'dark';
 
+const PROFILE_IMAGE_STORAGE_KEY = 'betMaestroProfileImage'; // Make key available
+
 interface AppContextType {
   user: User | null;
   balance: number;
@@ -18,6 +20,7 @@ interface AppContextType {
   useDummyData: boolean;
   isLoading: boolean;
   theme: Theme;
+  profileImage: string | null; // Added
   login: (preview?: boolean) => Promise<void>;
   logout: () => void;
   addBet: (bet: Bet) => void;
@@ -25,6 +28,7 @@ interface AppContextType {
   setPlan: (plan: 'basic' | 'premium') => void;
   updateBalance: (newBalance: number) => void;
   setTheme: (theme: Theme) => void;
+  setProfileImage: (imageUrl: string | null) => void; // Added
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -42,12 +46,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [useDummyData, setUseDummyData] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [theme, setThemeState] = useState<Theme>('light');
+  const [profileImage, setProfileImageState] = useState<string | null>(null); // Added state
   const router = useRouter();
 
   useEffect(() => {
     const persistedLogin = localStorage.getItem('betMaestroLoggedIn');
     const persistedDummy = localStorage.getItem('betMaestroUseDummy');
     const persistedTheme = localStorage.getItem(THEME_KEY) as Theme | null;
+    const persistedProfileImage = localStorage.getItem(PROFILE_IMAGE_STORAGE_KEY); // Load profile image
 
     if (persistedTheme) {
       setThemeState(persistedTheme);
@@ -55,7 +61,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         document.documentElement.classList.add('dark');
       }
     } else {
-        // If no theme is persisted, check system preference
         const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
         const initialTheme = prefersDark ? 'dark' : 'light';
         setThemeState(initialTheme);
@@ -63,6 +68,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (initialTheme === 'dark') {
             document.documentElement.classList.add('dark');
         }
+    }
+
+    if (persistedProfileImage) {
+      setProfileImageState(persistedProfileImage); // Set initial profile image
     }
 
 
@@ -75,8 +84,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setBalance(data.balance);
         setPlacedBets(data.placedBets);
       } else {
-        setUser({ id: 'default-user', name: 'User', plan: 'basic' });
-        setBalance(1000);
+        // For real users, if no specific user data is fetched, use a generic one
+        const realUserName = localStorage.getItem('betMaestroUserName') || 'User';
+        setUser({ id: 'default-user', name: realUserName, plan: 'basic' });
+        setBalance(1000); // Default balance for a new real user
         setPlacedBets([]);
       }
       setIsLoggedIn(true);
@@ -94,6 +105,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  const setProfileImage = (imageUrl: string | null) => { // Added function
+    setProfileImageState(imageUrl);
+    if (imageUrl) {
+      localStorage.setItem(PROFILE_IMAGE_STORAGE_KEY, imageUrl);
+    } else {
+      localStorage.removeItem(PROFILE_IMAGE_STORAGE_KEY);
+    }
+  };
+
   const clearChatStateFromLocalStorage = () => {
     localStorage.removeItem(CHAT_MESSAGES_KEY);
     localStorage.removeItem(CHAT_STATE_KEY);
@@ -104,6 +124,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setIsLoading(true);
     clearChatStateFromLocalStorage();
 
+    let loggedInUserName = 'User';
     if (preview) {
       const data: DummyData = dummyDataJson;
       setUser(data.user);
@@ -111,13 +132,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setPlacedBets(data.placedBets);
       setUseDummyData(true);
       localStorage.setItem('betMaestroUseDummy', 'true');
+      loggedInUserName = data.user.name;
+      // Load profile image for dummy user if they had one (though unlikely for a generic dummy.json)
+      const dummyUserProfileImage = localStorage.getItem(`${PROFILE_IMAGE_STORAGE_KEY}_${data.user.id}`);
+      setProfileImageState(dummyUserProfileImage);
+
     } else {
-      setUser({ id: 'real-user', name: 'Real User', plan: 'basic' });
-      setBalance(500);
+      // Potentially fetch user details here in a real app
+      loggedInUserName = 'Real User'; // Example name
+      setUser({ id: 'real-user', name: loggedInUserName, plan: 'basic' });
+      setBalance(500); // Example balance
       setPlacedBets([]);
       setUseDummyData(false);
       localStorage.setItem('betMaestroUseDummy', 'false');
+      // Load profile image for real user
+      const realUserProfileImage = localStorage.getItem(PROFILE_IMAGE_STORAGE_KEY); // General key for real user
+      setProfileImageState(realUserProfileImage);
     }
+    localStorage.setItem('betMaestroUserName', loggedInUserName); // Store name for reloads
     setIsLoggedIn(true);
     localStorage.setItem('betMaestroLoggedIn', 'true');
     setIsLoading(false);
@@ -133,8 +165,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setPlacedBets([]);
     setIsLoggedIn(false);
     setUseDummyData(false);
+    setProfileImageState(null); // Clear profile image on logout
+    // Note: We keep PROFILE_IMAGE_STORAGE_KEY in localStorage intentionally
+    // so it's remembered if the same user logs back in.
+    // If you want it cleared per session, add: localStorage.removeItem(PROFILE_IMAGE_STORAGE_KEY);
     localStorage.removeItem('betMaestroLoggedIn');
     localStorage.removeItem('betMaestroUseDummy');
+    localStorage.removeItem('betMaestroUserName');
     setIsLoading(false);
     router.push('/login');
   }, [router]);
@@ -167,6 +204,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         useDummyData,
         isLoading,
         theme,
+        profileImage, // Added
         login,
         logout,
         addBet,
@@ -174,6 +212,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setPlan,
         updateBalance,
         setTheme,
+        setProfileImage, // Added
       }}
     >
       {children}
