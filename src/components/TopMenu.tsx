@@ -23,6 +23,8 @@ const TopMenu: React.FC = () => {
     return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(value);
   };
 
+  const pendingBetsCount = placedBets.filter(bet => !bet.betResult || bet.betResult === 'pending').length;
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-card shadow-sm">
       <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -37,12 +39,12 @@ const TopMenu: React.FC = () => {
             <span className="ml-1 font-semibold">{formatCurrency(balance)}</span>
           </Link>
           
-          <Link href="/my-bets" className="flex items-center text-sm font-medium text-foreground hover:text-primary transition-colors" aria-label={`View your placed bets. You have ${placedBets.length} bets.`}>
+          <Link href="/my-bets" className="flex items-center text-sm font-medium text-foreground hover:text-primary transition-colors" aria-label={`View your placed bets. You have ${pendingBetsCount} pending bets.`}>
             <Ticket className="mr-1 h-5 w-5" />
             <span className="hidden sm:inline">My Bets</span>
-            {placedBets.length > 0 && (
+            {pendingBetsCount > 0 && (
               <span className="ml-1.5 inline-flex items-center justify-center rounded-full bg-primary px-2 py-0.5 text-xs font-semibold text-primary-foreground">
-                {placedBets.length}
+                {pendingBetsCount}
               </span>
             )}
           </Link>
@@ -86,3 +88,4 @@ const TopMenu: React.FC = () => {
 };
 
 export default TopMenu;
+

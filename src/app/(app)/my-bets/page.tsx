@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import { ArrowLeft, Ticket } from 'lucide-react'; // Removed TrendingUp, TrendingDown, CircleHelp
+import { ArrowLeft, Ticket, ClipboardList, TrendingUp, TrendingDown, Scale } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAppContext } from '@/contexts/AppContext';
@@ -10,7 +10,7 @@ import type { Bet } from '@/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils'; // Added cn import
+import { cn } from '@/lib/utils';
 
 export default function MyBetsPage() {
   const { placedBets } = useAppContext();
@@ -18,17 +18,32 @@ export default function MyBetsPage() {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(value);
   };
-  
-  // getBetStatusIcon function removed as icon is no longer displayed
 
   const getBetStatusBadgeVariant = (status?: 'won' | 'lost' | 'pending'): "default" | "destructive" | "secondary" | "outline" => {
     switch (status) {
-      case 'won': return "default"; // Will be styled green conditionally
+      case 'won': return "default";
       case 'lost': return "destructive";
       case 'pending': return "secondary";
       default: return "outline";
     }
   };
+
+  // Calculate summary statistics
+  const totalBetsPlaced = placedBets.length;
+  const totalGains = placedBets
+    .filter(bet => bet.betResult === 'won' && typeof bet.betGain === 'number')
+    .reduce((sum, bet) => sum + (bet.betGain || 0), 0);
+  const totalLosses = placedBets
+    .filter(bet => bet.betResult === 'lost')
+    .reduce((sum, bet) => sum + bet.betAmount, 0);
+  const betBalance = totalGains - totalLosses;
+
+  const summaryStats = [
+    { label: "Total Bets", value: totalBetsPlaced.toString(), icon: ClipboardList, color: "text-primary" },
+    { label: "Total Gains", value: formatCurrency(totalGains), icon: TrendingUp, color: "text-green-500" },
+    { label: "Total Losses", value: formatCurrency(totalLosses), icon: TrendingDown, color: "text-red-500" },
+    { label: "Bet Balance", value: formatCurrency(betBalance), icon: Scale, color: betBalance >= 0 ? "text-green-500" : "text-red-500" },
+  ];
 
 
   return (
@@ -38,7 +53,27 @@ export default function MyBetsPage() {
         Back to Chat
       </Link>
 
-      <h1 className="text-3xl font-bold mb-8 text-center text-foreground">My Placed Bets</h1>
+      <h1 className="text-3xl font-bold mb-6 text-center text-foreground">My Placed Bets</h1>
+
+      {/* Betting Summary Card */}
+      {placedBets.length > 0 && (
+        <Card className="mb-8 shadow-md bg-card">
+          <CardHeader>
+            <CardTitle className="text-xl text-center text-foreground">Betting Summary</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+              {summaryStats.map(stat => (
+                <div key={stat.label} className="p-3 rounded-lg bg-background/70 flex flex-col items-center shadow">
+                  <stat.icon className={cn("h-7 w-7 mb-1.5", stat.color)} />
+                  <p className="text-xs text-muted-foreground">{stat.label}</p>
+                  <p className="text-lg font-semibold text-foreground">{stat.value}</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {placedBets.length === 0 ? (
         <Card className="w-full max-w-2xl mx-auto text-center shadow-lg">
@@ -58,7 +93,7 @@ export default function MyBetsPage() {
           </CardFooter>
         </Card>
       ) : (
-        <ScrollArea className="h-[calc(100vh-12rem)]"> {/* Adjust height as needed */}
+        <ScrollArea className="h-[calc(100vh-20rem)]"> {/* Adjusted height if summary box is tall */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {placedBets.map((bet: Bet) => (
               <Card key={bet.id} className="shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col">
@@ -82,7 +117,7 @@ export default function MyBetsPage() {
                 <CardContent className="flex-grow space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Game Date:</span>
-                    <span>{bet.gameDate}</span> {/* Display date string directly */}
+                    <span>{bet.gameDate}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Bet Amount:</span>
@@ -99,7 +134,7 @@ export default function MyBetsPage() {
                          {formatCurrency(-bet.betAmount)}
                        </span>
                      </div>
-                   ) : bet.betGain !== undefined && bet.betResult === 'won' ? ( // Only show gain for 'won' bets
+                   ) : bet.betResult === 'won' && bet.betGain !== undefined ? (
                      <div className="flex justify-between">
                        <span className="text-muted-foreground">Gain/Loss:</span>
                        <span className="font-semibold text-green-600">
@@ -110,8 +145,7 @@ export default function MyBetsPage() {
                 </CardContent>
                 <CardFooter className="text-xs text-muted-foreground pt-3 border-t mt-auto">
                   <div className="flex justify-between items-center w-full">
-                    <span>Bet Placed: {bet.betDate}</span> {/* Display date string directly */}
-                    {/* Icon removed from here */}
+                    <span>Bet Placed: {bet.betDate}</span>
                   </div>
                 </CardFooter>
               </Card>
@@ -122,3 +156,4 @@ export default function MyBetsPage() {
     </div>
   );
 }
+
