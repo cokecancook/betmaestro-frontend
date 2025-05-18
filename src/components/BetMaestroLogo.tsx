@@ -1,28 +1,29 @@
 
+"use client";
+
 import type React from 'react';
+import Image from 'next/image';
 import { useAppContext } from '@/contexts/AppContext';
 import { cn } from '@/lib/utils';
 
 const BetMaestroLogo: React.FC<{ className?: string }> = ({ className }) => {
   const { theme } = useAppContext();
 
-  // Base classes for the logo wrapper.
-  // Default text size 'text-2xl' is included here.
-  // `className` prop can override defaults (e.g., text size on login page).
-  const wrapperClasses = "flex items-center gap-2 font-bold text-2xl";
+  const logoSrc = theme === 'dark' ? '/icon-logo-white.png' : '/icon-logo-black.png';
 
   return (
-    <div className={cn(wrapperClasses, className)}>
-      <span
-        className={cn(
-          // Color is theme-dependent. Text size is inherited from parent div.
-          theme === 'dark' ? 'text-white' : 'text-foreground'
-        )}
-      >
-        BetMaestro
-      </span>
+    <div className={cn("flex items-center", className)}>
+      <Image
+        src={logoSrc}
+        alt="BetMaestro Logo"
+        width={160} // Adjust width as needed
+        height={32} // Adjust height as needed
+        priority // Ensures logo loads quickly, good for LCP in header
+        data-ai-hint={theme === 'dark' ? "icon logo white" : "icon logo black"}
+      />
     </div>
   );
 };
 
 export default BetMaestroLogo;
+
