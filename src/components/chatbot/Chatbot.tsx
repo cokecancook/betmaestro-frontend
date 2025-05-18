@@ -15,10 +15,10 @@ import { v4 as uuidv4 } from 'uuid'; // For generating unique message IDs
 type ChatState = 
   | 'GREETING' 
   | 'AWAITING_AMOUNT' 
-  | 'PROCESSING_AMOUNT' 
+  | 'PROCESSING_AMOUNT' // Can be considered transient if AI call follows immediately
   | 'SHOWING_STRATEGY' 
   | 'AWAITING_CONFIRMATION'
-  | 'PROCESSING_BET'
+  | 'PROCESSING_BET' // Can be considered transient
   | 'BET_PLACED'
   | 'ERROR_BALANCE'
   | 'PROMPT_PREMIUM'
@@ -26,7 +26,7 @@ type ChatState =
   | 'ERROR_GENERIC';
 
 const Chatbot: React.FC = () => {
-  const { user, balance, addBet, updateBalance } = useAppContext(); // Removed setPlan as it's not used here
+  const { user, balance, addBet, updateBalance } = useAppContext();
   const { toast } = useToast();
   const [messages, setMessages] = useState<ChatMessageType[]>([]);
   const [chatState, setChatState] = useState<ChatState>('GREETING');
@@ -57,7 +57,11 @@ const Chatbot: React.FC = () => {
       chatBotWelcomeMessage({ userName: user.name, walletBalance: balance })
         .then(response => {
           setMessages(prev => prev.slice(0, -1)); // Remove placeholder
-          addMessage('ai', `${response.welcomeMessage} ${response.initialQuestion}`);
+          addMessage('ai', `${response.welcomeMessage} ${response.initialQuestion}`, undefined, [
+            {label: "50€", value: "50"},
+            {label: "100€", value: "100"},
+            {label: "200€", value: "200"}
+          ]);
           setChatState('AWAITING_AMOUNT');
         })
         .catch(error => {
@@ -80,16 +84,20 @@ const Chatbot: React.FC = () => {
       case 'AWAITING_AMOUNT':
         const amount = parseFloat(text);
         if (isNaN(amount) || amount <= 0) {
-          setMessages(prev => prev.slice(0, -1));
-          addMessage('ai', "Please enter a valid positive number for your bet amount.");
-          // setChatState('AWAITING_AMOUNT'); // Stays in this state
+          setMessages(prev => prev.slice(0, -1)); // Remove placeholder
+          addMessage('ai', "Please enter a valid positive number for your bet amount.", undefined, [
+            {label: "50€", value: "50"}, {label: "100€", value: "100"}, {label: "200€", value: "200"}
+          ]);
+          setIsAiTyping(false);
         } else if (amount > balance) {
-          setMessages(prev => prev.slice(0, -1));
-          addMessage('ai', `Your bet of ${amount}€ exceeds your wallet balance of ${balance}€. Please enter a smaller amount or recharge your wallet.`);
-          // setChatState('AWAITING_AMOUNT'); // Stays in this state
+          setMessages(prev => prev.slice(0, -1)); // Remove placeholder
+          addMessage('ai', `Your bet of ${amount}€ exceeds your wallet balance of ${balance}€. Please enter a smaller amount or recharge your wallet.`, undefined, [
+            {label: "50€", value: "50"}, {label: "100€", value: "100"}, {label: "200€", value: "200"}
+          ]);
+          setIsAiTyping(false);
         } else {
           setCurrentBetAmount(amount);
-          setChatState('PROCESSING_AMOUNT'); // Transient state
+          setChatState('PROCESSING_AMOUNT'); 
           try {
             const strategy = await generateBettingStrategy({ walletBalance: balance, betAmount: amount });
             setMessages(prev => prev.slice(0, -1)); // Remove placeholder
@@ -99,87 +107,96 @@ const Chatbot: React.FC = () => {
             console.error("Error generating strategy:", error);
             setMessages(prev => prev.slice(0, -1)); // Remove placeholder
             addMessage('ai', "Sorry, I couldn't generate a strategy right now. Please try again.");
-            setChatState('AWAITING_AMOUNT');
+            setChatState('AWAITING_AMOUNT'); // Go back to awaiting amount
+          } finally {
+            setIsAiTyping(false);
           }
         }
         break;
 
       case 'AWAITING_CONFIRMATION':
-        setMessages(prev => prev.slice(0, -1)); // Remove AI typing placeholder from start of handleHumanMessage
         if (text.toLowerCase() === 'yes') {
           if (user?.plan === 'premium') {
             setChatState('PROCESSING_BET');
-            // No "Placing your bets..." message, loader is already there
             // Simulate placing bet
             setTimeout(() => {
               const newBet: Bet = { 
                 id: uuidv4(),
-                gameDate: new Date().toISOString().split('T')[0],
+                gameDate: new Date().toISOString().split('T')[0], // Simplified
                 homeTeam: "Team A", awayTeam: "Team B", 
                 betAmount: currentBetAmount!,
                 odds: 1.8, 
                 betWinnerTeam: "Team A", 
                 betDate: new Date().toISOString().split('T')[0],
-                // betResult will be undefined (pending) by default
               };
               addBet(newBet);
               const newBalance = balance - currentBetAmount!;
               updateBalance(newBalance);
-              setMessages(prev => prev.slice(0, -1)); // Remove AI typing placeholder
-              addMessage('ai', `Bets placed for ${currentBetAmount}€! Your new balance is ${newBalance.toFixed(2)}€. Good luck!`);
+              setMessages(prev => prev.slice(0, -1)); // Remove placeholder
+              addMessage('ai', `Bets placed for ${currentBetAmount}€! Your new balance is ${newBalance.toFixed(2)}€. Good luck! What's next?`, undefined, [{label: "Start new bet", value:"new_bet"}, {label: "No, that's all", value:"end_chat"}]);
               toast({ title: "Bet Placed!", description: `Your ${currentBetAmount}€ bet has been successfully placed.` });
               setChatState('IDLE_AFTER_NO'); 
+              setIsAiTyping(false);
             }, 1500);
-          } else {
-             setMessages(prev => prev.slice(0, -1)); // Remove AI typing placeholder
+          } else { // Not premium
+            setMessages(prev => prev.slice(0, -1)); // Remove placeholder
             addMessage('ai', "Placing bets is a Premium feature. Please upgrade your plan in your Profile to proceed.", undefined, [{label: "Go to Profile", value: "profile"}, {label: "Maybe later", value: "later"}]);
             setChatState('PROMPT_PREMIUM');
+            setIsAiTyping(false);
           }
         } else if (text.toLowerCase() === 'no') {
-           setMessages(prev => prev.slice(0, -1)); // Remove AI typing placeholder
+          setMessages(prev => prev.slice(0, -1)); // Remove placeholder
           addMessage('ai', "Okay, no problem. Is there anything else I can help you with today?", undefined, [{label: "Start new bet", value:"new_bet"}, {label: "No, that's all", value:"end_chat"}]);
           setChatState('IDLE_AFTER_NO');
-        } else {
-            setMessages(prev => prev.slice(0, -1)); // Remove AI typing placeholder
-           addMessage('ai', "Please answer with 'Yes' or 'No'.", undefined, [{label: "Yes, place bet", value: "yes"}, {label: "No, thanks", value: "no"}]);
-           // Stay in AWAITING_CONFIRMATION
+          setIsAiTyping(false);
+        } else { // Invalid response
+          setMessages(prev => prev.slice(0, -1)); // Remove placeholder
+          addMessage('ai', "Please answer with 'Yes' or 'No'.", undefined, [{label: "Yes, place bet", value: "yes"}, {label: "No, thanks", value: "no"}]);
+          // Stay in AWAITING_CONFIRMATION
+          setIsAiTyping(false);
         }
         break;
       
       case 'PROMPT_PREMIUM':
-        setMessages(prev => prev.slice(0, -1)); // Remove AI typing placeholder
+        setMessages(prev => prev.slice(0, -1)); // Remove placeholder
         if (text.toLowerCase() === 'profile') {
           addMessage('ai', "Great! Taking you to your profile now.");
           toast({ title: "Redirecting to Profile..."});
-          // Using window.location for simplicity in this context. Consider Next.js router if passed or available globally.
           setTimeout(() => window.location.pathname = '/profile', 500); 
-        } else {
+        } else { // 'later'
           addMessage('ai', "Alright. Let me know if you change your mind or need help with something else!", undefined, [{label: "Start new bet", value:"new_bet"}, {label: "No, that's all", value:"end_chat"}]);
         }
         setChatState('IDLE_AFTER_NO');
+        setIsAiTyping(false);
         break;
 
       case 'IDLE_AFTER_NO':
         if (text.toLowerCase() === 'new_bet' && user) {
            try {
             const response = await chatBotWelcomeMessage({ userName: user.name, walletBalance: balance });
-            setMessages(prev => prev.slice(0, -1)); 
-            addMessage('ai', `${response.initialQuestion}`);
+            setMessages(prev => prev.slice(0, -1)); // Remove placeholder
+            addMessage('ai', `${response.initialQuestion}`, undefined, [
+              {label: "50€", value: "50"}, {label: "100€", value: "100"}, {label: "200€", value: "200"}
+            ]);
             setChatState('AWAITING_AMOUNT');
           } catch (error) {
             console.error("Error starting new bet:", error);
-            setMessages(prev => prev.slice(0, -1)); 
+            setMessages(prev => prev.slice(0, -1)); // Remove placeholder
             addMessage('ai', "I had trouble starting a new bet. Please try asking for a 'new bet' again.");
             setChatState('AWAITING_AMOUNT'); 
+          } finally {
+            setIsAiTyping(false);
           }
         } else if (text.toLowerCase() === 'end_chat') {
-          setMessages(prev => prev.slice(0, -1)); 
+          setMessages(prev => prev.slice(0, -1)); // Remove placeholder
           addMessage('ai', "Thanks for using BetMaestro! Have a great day.");
-          setChatState('ERROR_GENERIC'); 
+          setChatState('ERROR_GENERIC'); // Effectively ends the conversation flow
+          setIsAiTyping(false);
         } else {
-          setMessages(prev => prev.slice(0, -1)); 
-          addMessage('ai', "Sorry, I didn't quite get that. Please choose an option or type 'new bet' or 'end chat'.", undefined, getQuickReplies());
+          setMessages(prev => prev.slice(0, -1)); // Remove placeholder
+          addMessage('ai', "Sorry, I didn't quite get that. Please choose an option or type 'new bet' or 'end chat'.", undefined,  [{label: "Start new bet", value:"new_bet"}, {label: "No, that's all", value:"end_chat"}]);
           // Stays in IDLE_AFTER_NO
+          setIsAiTyping(false);
         }
         break;
 
@@ -187,42 +204,29 @@ const Chatbot: React.FC = () => {
         setMessages(prev => prev.slice(0, -1)); // Remove placeholder
         addMessage('ai', "I'm not sure how to handle that right now. Let's try starting over. How much would you like to bet?");
         setChatState('AWAITING_AMOUNT');
+        setIsAiTyping(false);
         break;
     }
-    setIsAiTyping(false);
-  };
-
-  const getQuickReplies = () => {
-    if (chatState === 'AWAITING_CONFIRMATION') {
-      return [{ label: "Yes, place bet", value: "yes" }, { label: "No, thanks", value: "no" }];
-    }
-    if (chatState === 'PROMPT_PREMIUM') {
-      return [{label: "Go to Profile", value: "profile"}, {label: "Maybe later", value: "later"}];
-    }
-     if (chatState === 'IDLE_AFTER_NO') {
-      return [{label: "Start new bet", value:"new_bet"}, {label: "No, that's all", value:"end_chat"}];
-    }
-    return undefined;
+    // setIsAiTyping(false) moved into specific branches above
   };
   
   const getInputPlaceholder = () => {
-    if (chatState === 'AWAITING_AMOUNT') return "Enter bet amount (e.g., 50)";
-    if (chatState === 'AWAITING_CONFIRMATION' || chatState === 'PROMPT_PREMIUM' || chatState === 'IDLE_AFTER_NO') return "Type 'Yes' or 'No', or choose an option";
-    if (isAiTyping && !messages.some(m => m.isLoading && m.text === undefined)) return "Waiting for BetMaestro..."; // More specific if AI is typing but no visible loader msg
+    if (chatState === 'AWAITING_AMOUNT') return "Enter bet amount or choose an option";
+    if (chatState === 'AWAITING_CONFIRMATION' || chatState === 'PROMPT_PREMIUM' || chatState === 'IDLE_AFTER_NO') return "Choose an option or type your response";
+    if (isAiTyping && messages.some(m => m.isLoading)) return "Waiting for BetMaestro...";
     return "Type your message...";
   }
 
-
   return (
     <div className="flex flex-col h-[calc(100vh-4rem-1px)] max-h-[calc(100vh-4rem-1px)] bg-background rounded-lg shadow-lg overflow-hidden"> {/* Adjust height based on TopMenu */}
-      <ScrollArea className="flex-grow p-4" ref={scrollAreaRef}>
+      <ScrollArea className="flex-grow p-4 space-y-4" ref={scrollAreaRef}> {/* Added space-y-4 for overall message spacing */}
         {messages.map((msg) => (
           <ChatMessage key={msg.id} message={msg} onOptionClick={handleHumanMessage} />
         ))}
       </ScrollArea>
       <ChatInput 
         onSendMessage={handleHumanMessage} 
-        quickReplies={getQuickReplies()}
+        // quickReplies prop removed
         disabled={isAiTyping || !['AWAITING_AMOUNT', 'AWAITING_CONFIRMATION', 'PROMPT_PREMIUM', 'IDLE_AFTER_NO'].includes(chatState)}
         placeholder={getInputPlaceholder()}
       />
