@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import type { ChatMessage as ChatMessageType, GenerateBettingStrategyOutput, User, Bet } from '@/types';
+import type { ChatMessage as ChatMessageType, GenerateBettingStrategyOutput, Bet } from '@/types';
 import { useAppContext } from '@/contexts/AppContext';
 import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
@@ -283,12 +283,12 @@ const Chatbot: React.FC = () => {
             console.error("Error starting new bet:", error);
             removeAiTypingPlaceholder();
             addMessage('ai', "I had trouble starting a new bet. Please try asking for a 'new bet' again.");
-            setChatState('AWAITING_AMOUNT'); // Revert to allow new bet attempt
+            setChatState('AWAITING_AMOUNT'); 
           }
         } else if (actionValue.toLowerCase() === 'end_chat') {
           removeAiTypingPlaceholder();
           addMessage('ai', "Thanks for using BetMaestro! Have a great day. Feel free to ask if anything else comes up.");
-          setChatState('IDLE_AFTER_NO');
+          setChatState('IDLE_AFTER_NO'); 
         } else {
           removeAiTypingPlaceholder();
           addMessage('ai', "Sorry, I didn't quite get that. Please choose an option or type 'new bet' or 'end chat'.", undefined,  [{label: "Start new bet", value:"new_bet"}, {label: "No, that's all", value:"end_chat"}]);
@@ -334,7 +334,6 @@ const Chatbot: React.FC = () => {
     if (!user || balance === undefined || !isRestored) return true;
 
     const nonInputStates: ChatState[] = ['GREETING', 'PROCESSING_AMOUNT', 'PROCESSING_BET', 'ERROR_GENERIC'];
-    // 'BET_PLACED' was removed to allow "Start new bet" from IDLE_AFTER_NO
     if (nonInputStates.includes(chatState)) return true;
 
     return false;
@@ -343,10 +342,9 @@ const Chatbot: React.FC = () => {
   return (
     <div className="flex flex-col h-[calc(100vh-4rem-1px)] max-h-[calc(100vh-4rem-1px)] bg-background rounded-lg shadow-lg overflow-hidden">
       <ScrollArea className="flex-grow px-4" ref={scrollAreaRef}>
-        {messages.map((msg) => (
-          <ChatMessage key={msg.id} message={msg} onOptionClick={handleHumanMessage} />
+        {messages.map((msg, index) => (
+          <ChatMessage key={msg.id} message={msg} onOptionClick={handleHumanMessage} isFirstInList={index === 0} />
         ))}
-        {/* Removed the explicit isAiTyping check here as it's handled by messages array */}
       </ScrollArea>
       <ChatInput
         onSendMessage={handleHumanMessage}

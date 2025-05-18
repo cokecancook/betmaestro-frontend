@@ -2,25 +2,27 @@
 "use client";
 
 import type React from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; // Added AvatarImage
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Card, CardContent } from '@/components/ui/card';
 import type { ChatMessage as ChatMessageType, GenerateBettingStrategyOutput } from '@/types';
 import { Bot, User, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAppContext } from '@/contexts/AppContext';
+import { cn } from '@/lib/utils';
 
 interface ChatMessageProps {
   message: ChatMessageType;
   onOptionClick?: (option: { label: string; value: string }) => void;
+  isFirstInList?: boolean;
 }
 
-const ChatMessage: React.FC<ChatMessageProps> = ({ message, onOptionClick }) => {
-  const { theme, profileImage, user } = useAppContext(); // Get profileImage and user
+const ChatMessage: React.FC<ChatMessageProps> = ({ message, onOptionClick, isFirstInList }) => {
+  const { theme, profileImage, user } = useAppContext();
   const isAI = message.sender === 'ai';
 
   const renderStrategy = (strategy: GenerateBettingStrategyOutput) => (
     <Card className="mt-2 bg-background/50 border-primary/50 shadow-md">
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-3 pt-4">
         <div>
           <h4 className="font-semibold text-foreground">Strategy Description:</h4>
           <p className="text-sm text-muted-foreground whitespace-pre-wrap">{strategy.strategyDescription}</p>
@@ -42,7 +44,11 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onOptionClick }) => 
   );
 
   return (
-    <div className={`flex items-end space-x-3 ${isAI ? '' : 'justify-end'} mb-6`}>
+    <div className={cn(
+      `flex items-end space-x-3 mb-6`,
+      isAI ? '' : 'justify-end',
+      isFirstInList && isAI && 'mt-4'
+    )}>
       {isAI && (
         <Avatar className="h-8 w-8 shrink-0 self-start mt-1">
           <AvatarFallback className="bg-orange-500">
@@ -88,7 +94,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onOptionClick }) => 
             <AvatarImage src={profileImage} alt={user?.name || 'User'} className="object-cover"/>
           ) : (
             <AvatarFallback className="bg-primary">
-              <User size={20} className={theme === 'light' ? 'text-primary-foreground' : 'text-background'} />
+              <User size={20} className={theme === 'dark' ? 'text-background' : 'text-primary-foreground'} />
             </AvatarFallback>
           )}
         </Avatar>
