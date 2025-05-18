@@ -95,8 +95,13 @@ const TopMenu: React.FC = () => {
         <div className="md:hidden">
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" aria-label="Open menu">
-                <Menu className="h-6 w-6 text-foreground" />
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                aria-label="Open menu"
+                className="text-foreground hover:bg-secondary hover:text-primary"
+              >
+                <Menu className="h-6 w-6" />
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-[280px] sm:w-[320px] bg-card p-0 flex flex-col">
