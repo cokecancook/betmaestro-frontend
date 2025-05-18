@@ -40,7 +40,12 @@ const Chatbot: React.FC = () => {
   
   useEffect(() => {
     if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTo({ top: scrollAreaRef.current.scrollHeight, behavior: 'smooth' });
+      const viewport = scrollAreaRef.current.querySelector<HTMLDivElement>('div[data-radix-scroll-area-viewport]');
+      if (viewport) {
+        requestAnimationFrame(() => {
+          viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'smooth' });
+        });
+      }
     }
   }, [messages]);
 
@@ -104,7 +109,7 @@ const Chatbot: React.FC = () => {
         if (text.toLowerCase() === 'yes') {
           if (user?.plan === 'premium') {
             setChatState('PROCESSING_BET');
-            addMessage('ai', "Placing your bets..."); // This is an actual message, not a loader
+            // No "Placing your bets..." message, loader is already there
             // Simulate placing bet
             setTimeout(() => {
               const newBet: Bet = { 
@@ -120,21 +125,22 @@ const Chatbot: React.FC = () => {
               addBet(newBet);
               const newBalance = balance - currentBetAmount!;
               updateBalance(newBalance);
-              // Remove "Placing your bets..." message by finding its ID or assuming it's the last one if it's simple
-              // For simplicity, let's assume it's the last one if no other AI messages were added
-              setMessages(prev => prev.filter(m => m.text !== "Placing your bets...")); 
+              setMessages(prev => prev.slice(0, -1)); // Remove AI typing placeholder
               addMessage('ai', `Bets placed for ${currentBetAmount}€! Your new balance is ${newBalance.toFixed(2)}€. Good luck!`);
               toast({ title: "Bet Placed!", description: `Your ${currentBetAmount}€ bet has been successfully placed.` });
               setChatState('IDLE_AFTER_NO'); 
-            }, 1500); // Reduced timeout for faster feedback
+            }, 1500);
           } else {
+             setMessages(prev => prev.slice(0, -1)); // Remove AI typing placeholder
             addMessage('ai', "Placing bets is a Premium feature. Please upgrade your plan in your Profile to proceed.", undefined, [{label: "Go to Profile", value: "profile"}, {label: "Maybe later", value: "later"}]);
             setChatState('PROMPT_PREMIUM');
           }
         } else if (text.toLowerCase() === 'no') {
+           setMessages(prev => prev.slice(0, -1)); // Remove AI typing placeholder
           addMessage('ai', "Okay, no problem. Is there anything else I can help you with today?", undefined, [{label: "Start new bet", value:"new_bet"}, {label: "No, that's all", value:"end_chat"}]);
           setChatState('IDLE_AFTER_NO');
         } else {
+            setMessages(prev => prev.slice(0, -1)); // Remove AI typing placeholder
            addMessage('ai', "Please answer with 'Yes' or 'No'.", undefined, [{label: "Yes, place bet", value: "yes"}, {label: "No, thanks", value: "no"}]);
            // Stay in AWAITING_CONFIRMATION
         }
@@ -154,25 +160,24 @@ const Chatbot: React.FC = () => {
         break;
 
       case 'IDLE_AFTER_NO':
-        // Placeholder (P1) from start of handleHumanMessage is the one to remove
         if (text.toLowerCase() === 'new_bet' && user) {
            try {
             const response = await chatBotWelcomeMessage({ userName: user.name, walletBalance: balance });
-            setMessages(prev => prev.slice(0, -1)); // Remove P1
+            setMessages(prev => prev.slice(0, -1)); 
             addMessage('ai', `${response.initialQuestion}`);
             setChatState('AWAITING_AMOUNT');
           } catch (error) {
             console.error("Error starting new bet:", error);
-            setMessages(prev => prev.slice(0, -1)); // Remove P1
+            setMessages(prev => prev.slice(0, -1)); 
             addMessage('ai', "I had trouble starting a new bet. Please try asking for a 'new bet' again.");
             setChatState('AWAITING_AMOUNT'); 
           }
         } else if (text.toLowerCase() === 'end_chat') {
-          setMessages(prev => prev.slice(0, -1)); // Remove P1
+          setMessages(prev => prev.slice(0, -1)); 
           addMessage('ai', "Thanks for using BetMaestro! Have a great day.");
           setChatState('ERROR_GENERIC'); 
         } else {
-          setMessages(prev => prev.slice(0, -1)); // Remove P1
+          setMessages(prev => prev.slice(0, -1)); 
           addMessage('ai', "Sorry, I didn't quite get that. Please choose an option or type 'new bet' or 'end chat'.", undefined, getQuickReplies());
           // Stays in IDLE_AFTER_NO
         }
@@ -210,14 +215,10 @@ const Chatbot: React.FC = () => {
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem-1px)] max-h-[calc(100vh-4rem-1px)] bg-background rounded-lg shadow-lg overflow-hidden"> {/* Adjust height based on TopMenu */}
-      <ScrollArea className="flex-grow p-4" ref={scrollAreaRef}> {/* Removed space-y-4 */}
+      <ScrollArea className="flex-grow p-4" ref={scrollAreaRef}>
         {messages.map((msg) => (
           <ChatMessage key={msg.id} message={msg} onOptionClick={handleHumanMessage} />
         ))}
-        {/* This explicit typing indicator can be used if needed, but the current logic embeds it as a message */}
-        {/* {isAiTyping && messages.every(m => !m.isLoading) && (
-          <ChatMessage key="typing-indicator" message={{id: "typing-indicator", sender:"ai", isLoading: true}} />
-        )} */}
       </ScrollArea>
       <ChatInput 
         onSendMessage={handleHumanMessage} 
@@ -230,4 +231,3 @@ const Chatbot: React.FC = () => {
 };
 
 export default Chatbot;
-
