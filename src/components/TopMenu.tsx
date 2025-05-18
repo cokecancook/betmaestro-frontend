@@ -44,12 +44,6 @@ const TopMenu: React.FC = () => {
         
         {/* Desktop Menu */}
         <nav className="hidden md:flex items-center space-x-2 md:space-x-4">
-          <Link href="/wallet" className="flex items-center text-sm font-medium text-foreground hover:text-primary transition-colors" aria-label="View your wallet">
-            <Wallet className="mr-1 h-5 w-5" />
-            <span className="hidden sm:inline">Wallet:</span>
-            <span className="ml-1 font-semibold">{formatCurrency(balance)}</span>
-          </Link>
-          
           <Link href="/my-bets" className="flex items-center text-sm font-medium text-foreground hover:text-primary transition-colors" aria-label={`View your placed bets. You have ${pendingBetsCount} pending bets.`}>
             <Ticket className="mr-1 h-5 w-5" />
             <span className="hidden sm:inline">My Bets</span>
@@ -60,6 +54,12 @@ const TopMenu: React.FC = () => {
             )}
           </Link>
 
+          <Link href="/wallet" className="flex items-center text-sm font-medium text-foreground hover:text-primary transition-colors" aria-label="View your wallet">
+            <Wallet className="mr-1 h-5 w-5" />
+            <span className="hidden sm:inline">Wallet:</span>
+            <span className="ml-1 font-semibold">{formatCurrency(balance)}</span>
+          </Link>
+          
           <ThemeToggle /> 
 
           {user && (
@@ -125,7 +125,11 @@ const TopMenu: React.FC = () => {
 
               {user && (
                 <SheetClose asChild>
-                  <Link href="/profile" className="block p-4 border-b hover:bg-secondary cursor-pointer group">
+                  <Link 
+                    href="/profile" 
+                    className="block p-4 border-b hover:bg-secondary cursor-pointer group"
+                    aria-label={`View profile for ${user.name}`}
+                  >
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-base font-semibold leading-none text-foreground group-hover:text-primary">{user.name}</p>
@@ -145,13 +149,6 @@ const TopMenu: React.FC = () => {
               
               <nav className="flex flex-col flex-grow p-4 gap-1">
                 <SheetClose asChild>
-                  <Link href="/wallet" className="flex items-center p-3 rounded-md hover:bg-secondary group">
-                    <Wallet className="mr-3 h-5 w-5 text-muted-foreground group-hover:text-primary" />
-                    <span className="text-foreground group-hover:text-primary">Wallet: {formatCurrency(balance)}</span>
-                  </Link>
-                </SheetClose>
-
-                <SheetClose asChild>
                   <Link href="/my-bets" className="flex items-center p-3 rounded-md hover:bg-secondary group">
                     <Ticket className="mr-3 h-5 w-5 text-muted-foreground group-hover:text-primary" />
                     <span className="text-foreground group-hover:text-primary">My Bets</span>
@@ -160,6 +157,13 @@ const TopMenu: React.FC = () => {
                         {pendingBetsCount}
                       </span>
                     )}
+                  </Link>
+                </SheetClose>
+
+                <SheetClose asChild>
+                  <Link href="/wallet" className="flex items-center p-3 rounded-md hover:bg-secondary group">
+                    <Wallet className="mr-3 h-5 w-5 text-muted-foreground group-hover:text-primary" />
+                    <span className="text-foreground group-hover:text-primary">Wallet: {formatCurrency(balance)}</span>
                   </Link>
                 </SheetClose>
                 
