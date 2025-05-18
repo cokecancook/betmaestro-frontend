@@ -25,7 +25,7 @@ export default function AppLayout({
   if (isLoading || !isLoggedIn) {
     // Show a loading skeleton or a full-page loader
     return (
-      <div className="flex flex-col h-dvh overflow-y-hidden"> {/* Changed min-h-screen to h-dvh and added overflow-y-hidden */}
+      <div className="flex flex-col h-dvh"> {/* Removed overflow-y-hidden */}
         <header className="sticky top-0 z-50 w-full border-b bg-card">
           <div className="container mx-auto flex h-16 items-center justify-between px-4">
             <Skeleton className="h-8 w-32" />
@@ -36,7 +36,7 @@ export default function AppLayout({
             </div>
           </div>
         </header>
-        <main className="flex-grow container mx-auto p-4 overflow-y-auto"> {/* Added overflow-y-auto to main for skeleton content if it's too tall */}
+        <main className="flex-grow container mx-auto p-4 overflow-y-auto">
           <Skeleton className="h-64 w-full" />
         </main>
       </div>
@@ -44,9 +44,9 @@ export default function AppLayout({
   }
 
   return (
-    <div className="flex flex-col h-dvh overflow-y-hidden"> {/* Changed min-h-screen to h-dvh and added overflow-y-hidden */}
+    <div className="flex flex-col h-dvh"> {/* Removed overflow-y-hidden */}
       <TopMenu />
-      <main className="flex flex-col flex-1 overflow-hidden"> {/* Ensured main is a flex column */}
+      <main className="flex-1 overflow-y-auto"> {/* Changed from flex flex-col flex-1 overflow-hidden */}
         {children}
       </main>
     </div>
