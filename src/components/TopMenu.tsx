@@ -19,9 +19,12 @@ import {
   SheetContent,
   SheetTrigger,
   SheetClose,
+  SheetHeader,
+  SheetTitle,
 } from "@/components/ui/sheet";
 import { ThemeToggle } from './ThemeToggle'; 
 import Image from 'next/image';
+import { cn } from '@/lib/utils';
 
 const TopMenu: React.FC = () => {
   const { user, balance, placedBets, logout, theme, setTheme, profileImage } = useAppContext();
@@ -109,6 +112,9 @@ const TopMenu: React.FC = () => {
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-[280px] sm:w-[320px] bg-card p-0 flex flex-col">
+              <SheetHeader>
+                <SheetTitle className="sr-only">Mobile Menu</SheetTitle>
+              </SheetHeader>
               <div className="p-4 border-b">
                 <SheetClose asChild>
                     <Link href="/landing">
@@ -168,7 +174,6 @@ const TopMenu: React.FC = () => {
                          {theme === 'light' ? <Sun className="mr-3 h-5 w-5 text-muted-foreground group-hover:text-primary" /> : <Moon className="mr-3 h-5 w-5 text-muted-foreground group-hover:text-primary"/>}
                         <span className="text-foreground group-hover:text-primary">Theme</span>
                     </div>
-                     {/* ThemeToggle button removed from here as the whole row is now the toggle */}
                 </div>
               </nav>
 
@@ -191,3 +196,4 @@ const TopMenu: React.FC = () => {
 };
 
 export default TopMenu;
+
