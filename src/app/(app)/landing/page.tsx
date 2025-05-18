@@ -3,7 +3,7 @@ import Chatbot from '@/components/chatbot/Chatbot';
 
 export default function LandingPage() {
   return (
-    <div className="container mx-auto h-full py-0 px-0 sm:px-0 md:px-0 lg:px-0 max-w-full">
+    <div className="flex flex-col h-full min-h-0">
       {/* Chatbot takes full height below TopMenu */}
       <Chatbot />
     </div>
