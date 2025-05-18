@@ -2,16 +2,98 @@
 "use client";
 
 import Link from 'next/link';
-import { ArrowLeft, UserCircle, ShieldCheck, ShieldAlert, Gem, Sparkles } from 'lucide-react';
+import { ArrowLeft, UserCircle, ShieldCheck, ShieldAlert, Gem, Sparkles, Trash2, UploadCloud } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { useAppContext } from '@/contexts/AppContext';
 import { useToast } from "@/hooks/use-toast";
 import Image from 'next/image';
+import React, { useState, useEffect, useCallback } from 'react';
+
+const PROFILE_IMAGE_STORAGE_KEY = 'betMaestroProfileImage';
 
 export default function ProfilePage() {
   const { user, setPlan } = useAppContext();
   const { toast } = useToast();
+
+  const [profileImageSrc, setProfileImageSrc] = useState<string | null>(null);
+  const [isHoveringImage, setIsHoveringImage] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const getDefaultProfileImage = useCallback(() => {
+    if (user) {
+      return `https://placehold.co/128x128.png?text=${user.name.substring(0,1).toUpperCase()}`;
+    }
+    return 'https://placehold.co/128x128.png'; // Fallback if user is somehow null initially
+  }, [user]);
+
+  useEffect(() => {
+    const storedImage = localStorage.getItem(PROFILE_IMAGE_STORAGE_KEY);
+    if (storedImage) {
+      setProfileImageSrc(storedImage);
+    } else {
+      setProfileImageSrc(getDefaultProfileImage());
+    }
+  }, [getDefaultProfileImage]);
+
+  useEffect(() => {
+    // Update if user changes, but only if not a custom uploaded image
+    if (user && profileImageSrc && !profileImageSrc.startsWith('data:image/')) {
+        setProfileImageSrc(getDefaultProfileImage());
+    }
+  }, [user, profileImageSrc, getDefaultProfileImage]);
+
+
+  const handleImageUpload = (file: File) => {
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const dataUri = reader.result as string;
+        setProfileImageSrc(dataUri);
+        localStorage.setItem(PROFILE_IMAGE_STORAGE_KEY, dataUri);
+        toast({
+          title: "Profile Image Updated",
+          description: "Your new profile image has been set.",
+        });
+      };
+      reader.readAsDataURL(file);
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Upload Failed",
+        description: "Please upload a valid image file (e.g., PNG, JPG).",
+      });
+    }
+  };
+
+  const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setIsDragging(false);
+    if (event.dataTransfer.files && event.dataTransfer.files.length > 0) {
+      handleImageUpload(event.dataTransfer.files[0]);
+      event.dataTransfer.clearData();
+    }
+  };
+
+  const handleDeleteImage = () => {
+    const defaultImage = getDefaultProfileImage();
+    setProfileImageSrc(defaultImage);
+    localStorage.removeItem(PROFILE_IMAGE_STORAGE_KEY);
+    toast({
+      title: "Profile Image Removed",
+      description: "Your profile image has been reset to default.",
+    });
+  };
 
   if (!user) {
     return (
@@ -22,6 +104,7 @@ export default function ProfilePage() {
   }
 
   const isPremium = user.plan === 'premium';
+  const isCustomImage = profileImageSrc?.startsWith('data:image/');
 
   const handlePlanChange = () => {
     const newPlan = isPremium ? 'basic' : 'premium';
@@ -44,21 +127,55 @@ export default function ProfilePage() {
 
         <Card className="w-full max-w-md shadow-xl bg-card">
           <CardHeader className="text-center items-center flex flex-col">
-             <div className="relative mb-4">
-                <Image 
-                  src={`https://placehold.co/128x128.png?text=${user.name.substring(0,1).toUpperCase()}`} 
-                  alt={`${user.name}'s profile picture`} 
-                  width={128} 
-                  height={128} 
-                  className="rounded-full border-4 border-primary shadow-md"
-                  data-ai-hint="profile avatar"
+            <div
+              className={`relative mb-4 w-32 h-32 rounded-full border-4 group transition-all duration-200 ease-in-out
+                ${isDragging ? 'border-primary scale-105 shadow-lg' : 'border-muted hover:border-primary'}
+                ${isCustomImage ? 'border-primary' : ''}`}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              onMouseEnter={() => setIsHoveringImage(true)}
+              onMouseLeave={() => setIsHoveringImage(false)}
+            >
+              {profileImageSrc && (
+                <Image
+                  src={profileImageSrc}
+                  alt={`${user.name}'s profile picture`}
+                  width={128}
+                  height={128}
+                  className="rounded-full object-cover w-full h-full"
+                  data-ai-hint={isCustomImage ? "user uploaded" : "profile avatar"}
+                  key={profileImageSrc} // Force re-render if src changes
                 />
-                {isPremium && (
-                  <div className="absolute -bottom-2 -right-2 bg-accent text-accent-foreground p-2 rounded-full shadow-lg">
-                    <Gem className="h-5 w-5" />
-                  </div>
-                )}
-             </div>
+              )}
+              {!isCustomImage && !isDragging && (
+                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <UploadCloud className="h-8 w-8 text-white mb-1" />
+                    <p className="text-xs text-white text-center">Drop image</p>
+                 </div>
+              )}
+              {isDragging && (
+                <div className="absolute inset-0 flex items-center justify-center bg-primary/30 rounded-full">
+                  <UploadCloud className="h-10 w-10 text-primary-foreground" />
+                </div>
+              )}
+              {isCustomImage && isHoveringImage && (
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  className="absolute top-0 right-0 h-8 w-8 rounded-full"
+                  onClick={handleDeleteImage}
+                  aria-label="Delete profile image"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              )}
+              {isPremium && (
+                <div className="absolute -bottom-2 -right-2 bg-accent text-accent-foreground p-2 rounded-full shadow-lg z-10">
+                  <Gem className="h-5 w-5" />
+                </div>
+              )}
+            </div>
             <CardTitle className="text-2xl">{user.name}</CardTitle>
             <CardDescription>Manage your account details and plan.</CardDescription>
           </CardHeader>
@@ -72,14 +189,14 @@ export default function ProfilePage() {
                 {user.plan.charAt(0).toUpperCase() + user.plan.slice(1)}
               </p>
               <p className="text-sm text-muted-foreground mt-1">
-                {isPremium 
-                  ? "Enjoy all exclusive features including AI bet placement!" 
+                {isPremium
+                  ? "Enjoy all exclusive features including AI bet placement!"
                   : "Upgrade to Premium to unlock AI bet placement and more."}
               </p>
             </div>
 
-            <Button 
-              size="lg" 
+            <Button
+              size="lg"
               className="w-full text-lg py-6"
               variant={isPremium ? "outline" : "default"}
               onClick={handlePlanChange}
@@ -104,3 +221,4 @@ export default function ProfilePage() {
     </div>
   );
 }
+
