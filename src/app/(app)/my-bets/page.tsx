@@ -166,7 +166,7 @@ export default function MyBetsPage() {
           </CardHeader>
           <CardContent>
             <CardDescription className="text-lg">
-              It looks like you haven't placed any bets. Head over to the chat to get started!
+              Head over to the chat to get started!
             </CardDescription>
           </CardContent>
           <CardFooter>
