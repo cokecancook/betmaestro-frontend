@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import { ArrowLeft, DollarSign, PlusCircle } from 'lucide-react';
+import { ArrowLeft, Wallet, PlusCircle } from 'lucide-react'; // Changed DollarSign to Wallet
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAppContext } from '@/contexts/AppContext';
@@ -36,15 +36,17 @@ export default function WalletPage() {
         
         <Card className="w-full max-w-md shadow-xl bg-card">
           <CardHeader className="text-center pb-4">
-            <DollarSign className="h-12 w-12 text-primary mx-auto mb-2" />
+            <Wallet className="h-12 w-12 text-primary mx-auto mb-2" /> {/* Changed icon to Wallet */}
             <CardTitle className="text-2xl">Current Balance</CardTitle>
             <CardDescription>Your available funds for betting.</CardDescription>
           </CardHeader>
           <CardContent className="text-center">
-            <p className="text-5xl font-bold text-primary mb-6">{formatCurrency(balance)}</p>
+            {/* Removed text-primary from balance */}
+            <p className="text-5xl font-bold text-foreground mb-6">{formatCurrency(balance)}</p> 
             <Button 
               size="lg" 
-              className="w-full bg-accent hover:bg-accent/90 text-accent-foreground text-lg py-6"
+              // Changed button color to green
+              className="w-full bg-green-600 hover:bg-green-700 text-white text-lg py-6" 
               onClick={handleRecharge}
               aria-label="Recharge your wallet with 100 Euros"
             >
