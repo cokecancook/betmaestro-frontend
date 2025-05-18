@@ -73,19 +73,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const initialTheme: Theme = 'dark';
     setThemeState(initialTheme);
-    localStorage.setItem(THEME_KEY, initialTheme);
+    // Ensure localStorage reflects the default only if not set, or set it if different
+    const sessionTheme = localStorage.getItem(THEME_KEY) as Theme | null;
+    if (sessionTheme !== initialTheme) {
+        localStorage.setItem(THEME_KEY, initialTheme);
+    }
     document.documentElement.classList.add('dark');
 
-    const sessionTheme = localStorage.getItem(THEME_KEY) as Theme | null;
     if (sessionTheme && sessionTheme !== initialTheme) {
         setThemeState(sessionTheme);
         if (sessionTheme === 'light') {
             document.documentElement.classList.remove('dark');
         }
-    } else {
-        document.documentElement.classList.add('dark');
     }
-
 
     if (persistedProfileImage) {
       setProfileImageState(persistedProfileImage);
@@ -101,16 +101,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setBalance(data.balance);
         setPlacedBets(sortBetsByGameDateDesc(data.placedBets));
       } else {
-        const realUserName = localStorage.getItem('betMaestroUserName') || 'User';
-        setUser({ id: 'default-user', name: realUserName, plan: 'basic' });
+        const realUserName = localStorage.getItem('betMaestroUserName') || 'Test User'; // Updated default name
+        setUser({ id: 'test-user', name: realUserName, plan: 'basic' }); // Updated user ID
         const storedRealUserBalance = localStorage.getItem(REAL_USER_BALANCE_KEY);
         if (storedRealUserBalance) {
           setBalance(parseFloat(storedRealUserBalance));
         } else {
           // Default to 500 if not found (e.g., first login, or localStorage cleared)
-          setBalance(500); 
+          setBalance(500);
+          localStorage.setItem(REAL_USER_BALANCE_KEY, '500'); 
         }
-        setPlacedBets([]); // For now, real user bets are not persisted
+        // For now, test user bets are not persisted, could add later if needed
+        const storedTestUserBets = localStorage.getItem('betMaestroTestUserBets');
+        if (storedTestUserBets) {
+            setPlacedBets(sortBetsByGameDateDesc(JSON.parse(storedTestUserBets)));
+        } else {
+            setPlacedBets([]);
+        }
       }
       setIsLoggedIn(true);
     }
@@ -155,19 +162,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setUseDummyData(true);
       localStorage.setItem('betMaestroUseDummy', 'true');
       loggedInUserName = data.user.name;
+      // Attempt to load a specific profile image for the dummy user if one was set
       const dummyUserProfileImage = localStorage.getItem(`${PROFILE_IMAGE_STORAGE_KEY}_${data.user.id}`);
       setProfileImageState(dummyUserProfileImage);
 
     } else {
-      loggedInUserName = 'Real User'; 
-      setUser({ id: 'real-user', name: loggedInUserName, plan: 'basic' });
+      loggedInUserName = 'Test User'; // Updated display name
+      setUser({ id: 'test-user', name: loggedInUserName, plan: 'basic' }); // Updated user ID and name
       setBalance(500); 
-      localStorage.setItem(REAL_USER_BALANCE_KEY, '500'); // Persist initial balance
+      localStorage.setItem(REAL_USER_BALANCE_KEY, '500');
       setPlacedBets([]); 
+      localStorage.setItem('betMaestroTestUserBets', JSON.stringify([]));
       setUseDummyData(false);
       localStorage.setItem('betMaestroUseDummy', 'false');
-      const realUserProfileImage = localStorage.getItem(PROFILE_IMAGE_STORAGE_KEY);
-      setProfileImageState(realUserProfileImage);
+      // Load general profile image, or default if none set for this "test-user" session
+      const testUserProfileImage = localStorage.getItem(PROFILE_IMAGE_STORAGE_KEY); // This could be a shared image if not cleared on logout
+      setProfileImageState(testUserProfileImage);
     }
     localStorage.setItem('betMaestroUserName', loggedInUserName);
     setIsLoggedIn(true);
@@ -185,18 +195,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setPlacedBets([]);
     setIsLoggedIn(false);
     setUseDummyData(false);
+    // Potentially clear profile image on logout to prevent showing previous user's image,
+    // or manage separate profile images per user ID if implementing multi-user.
+    // For now, clearing it for a cleaner logout.
     setProfileImageState(null);
+    localStorage.removeItem(PROFILE_IMAGE_STORAGE_KEY); 
+
     localStorage.removeItem('betMaestroLoggedIn');
     localStorage.removeItem('betMaestroUseDummy');
     localStorage.removeItem('betMaestroUserName');
-    localStorage.removeItem(REAL_USER_BALANCE_KEY); // Clear real user balance
-    localStorage.removeItem(PROFILE_IMAGE_STORAGE_KEY); // Clear profile image to avoid showing previous user's image
+    localStorage.removeItem(REAL_USER_BALANCE_KEY);
+    localStorage.removeItem('betMaestroTestUserBets');
+    
     setIsLoading(false);
     router.push('/login');
   }, [router]);
 
   const addBet = (bet: Bet) => {
-    setPlacedBets(prevBets => sortBetsByGameDateDesc([...prevBets, bet]));
+    setPlacedBets(prevBets => {
+        const updatedBets = sortBetsByGameDateDesc([...prevBets, bet]);
+        if(!useDummyData) {
+            localStorage.setItem('betMaestroTestUserBets', JSON.stringify(updatedBets));
+        }
+        return updatedBets;
+    });
   };
 
   const rechargeWallet = (amount: number) => {
@@ -218,7 +240,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const setPlan = (plan: 'basic' | 'premium') => {
     if (user) {
-      setUser({ ...user, plan });
+      const updatedUser = { ...user, plan };
+      setUser(updatedUser);
+      if (!useDummyData) {
+        // Persist plan change for test user if needed, e.g.,
+        // localStorage.setItem('betMaestroTestUserPlan', plan);
+      }
     }
   };
 
