@@ -33,28 +33,29 @@ export async function generateBettingStrategy(input: GenerateBettingStrategyInpu
   return generateBettingStrategyFlow(input);
 }
 
-const prompt = ai.definePrompt({
-  name: 'generateBettingStrategyPrompt',
-  input: {schema: GenerateBettingStrategyInputSchema},
-  output: {schema: GenerateBettingStrategyOutputSchema},
-  prompt: `You are an expert betting strategy advisor.
-Your task is to provide a detailed betting strategy for the upcoming basketball game: New York Knicks vs Indiana Pacers on 22/05/2025.
-The user's current wallet balance is {{{walletBalance}}} EUR and they are considering a bet amount of {{{betAmount}}} EUR.
+// The prompt definition can remain, but it won't be used by the flow below.
+// const prompt = ai.definePrompt({
+//   name: 'generateBettingStrategyPrompt',
+//   input: {schema: GenerateBettingStrategyInputSchema},
+//   output: {schema: GenerateBettingStrategyOutputSchema},
+//   prompt: `You are an expert betting strategy advisor.
+// Your task is to provide a detailed betting strategy for the upcoming basketball game: New York Knicks vs Indiana Pacers on 22/05/2025.
+// The user's current wallet balance is {{{walletBalance}}} EUR and they are considering a bet amount of {{{betAmount}}} EUR.
 
-Your strategy must include:
-1.  A general 'strategyDescription' for approaching this game, considering the user's balance and bet amount.
-2.  A list of 3 specific 'suggestedBets' for this game.
-    *   Each bet MUST be with a different betting house.
-    *   You MUST choose these houses ONLY from the following list: "bet365", "Betfair", "Betway", "bwin", "DAZN", "888sport", "Bet442".
-    *   For each suggested bet, provide a clear justification. Format each suggestion clearly (e.g., "Bet on [Team/Outcome] with [House] because [Justification]. If possible, mention potential odds or value.").
-3.  A 'riskAssessment' for these suggested bets.
+// Your strategy must include:
+// 1.  A general 'strategyDescription' for approaching this game, considering the user's balance and bet amount.
+// 2.  A list of 3 specific 'suggestedBets' for this game.
+//     *   Each bet MUST be with a different betting house.
+//     *   You MUST choose these houses ONLY from the following list: "bet365", "Betfair", "Betway", "bwin", "DAZN", "888sport", "Bet442".
+//     *   For each suggested bet, provide a clear justification. Format each suggestion clearly (e.g., "Bet on [Team/Outcome] with [House] because [Justification]. If possible, mention potential odds or value.").
+// 3.  A 'riskAssessment' for these suggested bets.
 
-User's Wallet Balance: {{{walletBalance}}} EUR
-User's Bet Amount: {{{betAmount}}} EUR
-Game: New York Knicks vs Indiana Pacers
-Date: 22/05/2025
-Available Betting Houses for suggestions: "bet365", "Betfair", "Betway", "bwin", "DAZN", "888sport", "Bet442".`,
-});
+// User's Wallet Balance: {{{walletBalance}}} EUR
+// User's Bet Amount: {{{betAmount}}} EUR
+// Game: New York Knicks vs Indiana Pacers
+// Date: 22/05/2025
+// Available Betting Houses for suggestions: "bet365", "Betfair", "Betway", "bwin", "DAZN", "888sport", "Bet442".`,
+// });
 
 const generateBettingStrategyFlow = ai.defineFlow(
   {
@@ -62,18 +63,18 @@ const generateBettingStrategyFlow = ai.defineFlow(
     inputSchema: GenerateBettingStrategyInputSchema,
     outputSchema: GenerateBettingStrategyOutputSchema,
   },
-  async input => {
-    const {output} = await prompt(input);
-    if (!output) {
-      // Fallback if LLM fails to provide structured output
-      console.error("Generate betting strategy flow did not receive expected output from prompt for input:", input);
-      return {
-        strategyDescription: "Could not generate a specific strategy at this time. Please consider general betting principles like bankroll management and researching team form.",
-        suggestedBets: ["Unable to provide specific bets for Knicks vs Pacers right now."],
-        riskAssessment: "Risk assessment unavailable.",
-      };
-    }
-    return output;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async (input: GenerateBettingStrategyInput): Promise<GenerateBettingStrategyOutput> => {
+    // Return a hardcoded dummy strategy
+    return {
+      strategyDescription: "This dummy strategy focuses on diversifying bets across different outcomes and houses for the New York Knicks vs Indiana Pacers game on 22/05/2025. Consider your overall bankroll before placing these bets.",
+      suggestedBets: [
+        "Bet on New York Knicks to win with bet365. Justification: Knicks have shown strong home-court performance recently and this is a dummy bet for testing purposes.",
+        "Bet on Over 220.5 total points with Betfair. Justification: Both teams have high-scoring tendencies and this is a placeholder suggestion for the Knicks vs Pacers game.",
+        "Bet on Indiana Pacers +5.5 point spread with Betway. Justification: Pacers are strong underdogs and covering the spread is a plausible outcome for this simulated scenario."
+      ],
+      riskAssessment: "This is a dummy risk assessment for the Knicks vs Pacers game. All betting involves risk. Please bet responsibly.",
+    };
   }
 );
 
