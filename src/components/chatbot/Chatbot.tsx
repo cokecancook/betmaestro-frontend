@@ -385,14 +385,13 @@ const Chatbot: React.FC = () => {
     const nonInputStates: ChatState[] = ['GREETING', 'PROCESSING_AMOUNT', 'PROCESSING_BET', 'ERROR_GENERIC'];
     if (nonInputStates.includes(chatState)) return true;
     
-    if (chatState === 'IDLE_AFTER_NO') return false;
-
+    // if (chatState === 'IDLE_AFTER_NO') return false; // This was problematic, now handled by default case
 
     return false;
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem-1px)] max-h-[calc(100vh-4rem-1px)] bg-background rounded-lg shadow-lg overflow-hidden">
+    <div className="flex flex-col h-[calc(100dvh-4rem-1px)] max-h-[calc(100dvh-4rem-1px)] bg-background rounded-lg shadow-lg overflow-hidden">
       <ScrollArea className="flex-grow px-4" ref={scrollAreaRef}>
         {messages.map((msg, index) => (
           <ChatMessage key={msg.id} message={msg} onOptionClick={handleHumanMessage} isFirstInList={index === 0 && msg.sender === 'ai'} />
@@ -408,7 +407,3 @@ const Chatbot: React.FC = () => {
 };
 
 export default Chatbot;
-
-    
-
-    

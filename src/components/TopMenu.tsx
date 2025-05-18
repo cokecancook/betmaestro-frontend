@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Wallet, Ticket, UserCircle, LogOut } from 'lucide-react';
+import { Wallet, Ticket, UserCircle, LogOut, Menu, Sun, Moon } from 'lucide-react';
 import BetMaestroLogo from './BetMaestroLogo';
 import { useAppContext } from '@/contexts/AppContext';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetClose,
+} from "@/components/ui/sheet";
 import { ThemeToggle } from './ThemeToggle'; 
 import Image from 'next/image';
 
@@ -33,7 +39,8 @@ const TopMenu: React.FC = () => {
           <BetMaestroLogo />
         </Link>
         
-        <nav className="flex items-center space-x-2 md:space-x-4">
+        {/* Desktop Menu */}
+        <nav className="hidden md:flex items-center space-x-2 md:space-x-4">
           <Link href="/wallet" className="flex items-center text-sm font-medium text-foreground hover:text-primary transition-colors" aria-label="View your wallet">
             <Wallet className="mr-1 h-5 w-5" />
             <span className="hidden sm:inline">Wallet:</span>
@@ -83,6 +90,82 @@ const TopMenu: React.FC = () => {
             </DropdownMenu>
           )}
         </nav>
+
+        {/* Mobile Menu */}
+        <div className="md:hidden">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" aria-label="Open menu">
+                <Menu className="h-6 w-6 text-foreground" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[280px] sm:w-[320px] bg-card p-0 flex flex-col">
+              <div className="p-4 border-b">
+                <SheetClose asChild>
+                    <Link href="/landing">
+                        <BetMaestroLogo />
+                    </Link>
+                </SheetClose>
+              </div>
+
+              {user && (
+                <div className="p-4 border-b">
+                  <p className="text-base font-semibold leading-none text-foreground">{user.name}</p>
+                  <p className="text-sm leading-none text-muted-foreground mt-1">
+                    {user.plan.charAt(0).toUpperCase() + user.plan.slice(1)} Plan
+                  </p>
+                </div>
+              )}
+              
+              <nav className="flex-grow p-4 space-y-1">
+                <SheetClose asChild>
+                  <Link href="/wallet" className="flex items-center p-3 rounded-md hover:bg-secondary group">
+                    <Wallet className="mr-3 h-5 w-5 text-muted-foreground group-hover:text-primary" />
+                    <span className="text-foreground group-hover:text-primary">Wallet: {formatCurrency(balance)}</span>
+                  </Link>
+                </SheetClose>
+
+                <SheetClose asChild>
+                  <Link href="/my-bets" className="flex items-center p-3 rounded-md hover:bg-secondary group">
+                    <Ticket className="mr-3 h-5 w-5 text-muted-foreground group-hover:text-primary" />
+                    <span className="text-foreground group-hover:text-primary">My Bets</span>
+                    {pendingBetsCount > 0 && (
+                      <span className="ml-auto inline-flex items-center justify-center rounded-full bg-primary px-2 py-0.5 text-xs font-semibold text-primary-foreground">
+                        {pendingBetsCount}
+                      </span>
+                    )}
+                  </Link>
+                </SheetClose>
+
+                <SheetClose asChild>
+                  <Link href="/profile" className="flex items-center p-3 rounded-md hover:bg-secondary group">
+                    <UserCircle className="mr-3 h-5 w-5 text-muted-foreground group-hover:text-primary" />
+                    <span className="text-foreground group-hover:text-primary">Profile</span>
+                  </Link>
+                </SheetClose>
+                
+                <div className="flex items-center justify-between p-3 rounded-md hover:bg-secondary group">
+                    <div className="flex items-center">
+                         {theme === 'light' ? <Sun className="mr-3 h-5 w-5 text-muted-foreground group-hover:text-primary" /> : <Moon className="mr-3 h-5 w-5 text-muted-foreground group-hover:text-primary"/>}
+                        <span className="text-foreground group-hover:text-primary">Theme</span>
+                    </div>
+                  <ThemeToggle />
+                </div>
+              </nav>
+
+              {user && (
+                <div className="p-4 border-t mt-auto">
+                  <SheetClose asChild>
+                    <Button variant="ghost" onClick={logout} className="w-full justify-start p-3 text-destructive hover:bg-destructive/10 hover:text-destructive-foreground focus:text-destructive-foreground">
+                      <LogOut className="mr-3 h-5 w-5" />
+                      Log out
+                    </Button>
+                  </SheetClose>
+                </div>
+              )}
+            </SheetContent>
+          </Sheet>
+        </div>
       </div>
     </header>
   );
