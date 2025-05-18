@@ -48,8 +48,8 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onOptionClick }) => 
     <div className={`flex items-end space-x-3 ${isAI ? '' : 'justify-end'} mb-6`}> {/* Increased mb from 4 to 6 */}
       {isAI && (
         <Avatar className="h-8 w-8 shrink-0 self-start mt-1">
-          <AvatarFallback className="bg-orange-500"> {/* Removed text-black here */}
-            <Bot size={20} className={theme === 'light' ? 'text-black' : 'text-white'} /> {/* Conditional icon color */}
+          <AvatarFallback className="bg-orange-500">
+            <Bot size={20} className={theme === 'light' ? 'text-white' : 'text-black'} /> {/* Corrected conditional icon color */}
           </AvatarFallback>
         </Avatar>
       )}
@@ -87,7 +87,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onOptionClick }) => 
       </div>
       {!isAI && (
         <Avatar className="h-8 w-8 shrink-0 self-start mt-1">
-          <AvatarFallback className="bg-primary"> {/* Removed text-primary-foreground here */}
+          <AvatarFallback className="bg-primary">
             <User size={20} className={theme === 'light' ? 'text-primary-foreground' : 'text-background'} /> {/* Conditional icon color */}
           </AvatarFallback>
         </Avatar>
