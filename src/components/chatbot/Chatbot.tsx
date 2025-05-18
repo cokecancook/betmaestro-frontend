@@ -80,7 +80,6 @@ const Chatbot: React.FC = () => {
                 }
              }
         } else if (activeChatState === 'GREETING' && parsedMessages.length > 0) {
-          // If greeting but messages exist, figure out the actual last state
             const lastAiMsgWithOptions = [...parsedMessages].reverse().find(m => m.sender === 'ai' && m.options && m.options.length > 0);
             if (lastAiMsgWithOptions) {
                 if (lastAiMsgWithOptions.options?.some(opt => opt.value === 'yes' || opt.value === 'no')) {
@@ -91,7 +90,7 @@ const Chatbot: React.FC = () => {
                     activeChatState = 'AWAITING_AMOUNT';
                 }
             } else {
-                activeChatState = 'AWAITING_AMOUNT'; // Default if no clear option path
+                activeChatState = 'AWAITING_AMOUNT'; 
             }
         }
         setChatState(activeChatState);
@@ -244,6 +243,12 @@ const Chatbot: React.FC = () => {
             }
 
             const betsToPlace: SuggestedBet[] = strategyMessage.strategy.suggestedBets;
+            
+            const today = new Date();
+            const day = String(today.getDate()).padStart(2, '0');
+            const month = String(today.getMonth() + 1).padStart(2, '0'); // January is 0!
+            const year = today.getFullYear();
+            const formattedBetDate = `${day}/${month}/${year}`;
 
             setTimeout(() => {
               try {
@@ -258,7 +263,7 @@ const Chatbot: React.FC = () => {
                     house: suggestedBet.house,
                     betWinnerTeam: suggestedBet.betWinnerTeam,
                     betResult: 'pending',
-                    betDate: new Date().toISOString().split('T')[0],
+                    betDate: formattedBetDate,
                   };
                   addBet(newBet);
                 });
@@ -311,8 +316,7 @@ const Chatbot: React.FC = () => {
          if (actionValue.toLowerCase() === 'new_bet' && user) {
            try {
             setIsAiTyping(true);
-            // No need to add a new placeholder if one is already being managed by removeAiTypingPlaceholder
-            setMessages(prev => { // Add new typing indicator only if necessary
+            setMessages(prev => { 
               if (!prev.some(m => m.isLoading && m.sender === 'ai')) {
                 return [...prev, { id: uuidv4(), sender: 'ai', isLoading: true, timestamp: new Date().toISOString() } as ChatMessageType];
               }
@@ -342,8 +346,8 @@ const Chatbot: React.FC = () => {
       case 'ERROR_BALANCE':
          const newAmountBalanceError = parseFloat(actionValue);
          if (!isNaN(newAmountBalanceError) && newAmountBalanceError > 0) {
-            setChatState('AWAITING_AMOUNT'); // Set state first
-            await handleHumanMessage(userInput); // Re-process the amount
+            setChatState('AWAITING_AMOUNT'); 
+            await handleHumanMessage(userInput); 
          } else {
             removeAiTypingPlaceholder();
             addMessage('ai', "Please enter a valid positive number for your bet amount or choose an option.", undefined, [
@@ -381,13 +385,8 @@ const Chatbot: React.FC = () => {
     const nonInputStates: ChatState[] = ['GREETING', 'PROCESSING_AMOUNT', 'PROCESSING_BET', 'ERROR_GENERIC'];
     if (nonInputStates.includes(chatState)) return true;
     
-    // Specifically allow input in IDLE_AFTER_NO
     if (chatState === 'IDLE_AFTER_NO') return false;
 
-    // For states like AWAITING_CONFIRMATION or PROMPT_PREMIUM, we generally expect button clicks,
-    // but text input shouldn't be strictly disabled if we want to allow "new bet" typed commands.
-    // The current logic seems to handle this by having default cases or specific parsing.
-    // The primary blocker should be active AI processing or pre-restoration.
 
     return false;
   }
@@ -409,5 +408,7 @@ const Chatbot: React.FC = () => {
 };
 
 export default Chatbot;
+
+    
 
     
