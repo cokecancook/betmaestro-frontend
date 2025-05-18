@@ -132,8 +132,7 @@ export default function ProfilePage() {
       </Link>
 
       <div className="flex flex-col items-center">
-        {/* My Profile heading removed */}
-        <Card className="w-full max-w-md shadow-xl bg-card mt-8"> {/* Added mt-8 for spacing after removing h1 */}
+        <Card className="w-full max-w-md shadow-xl bg-card mt-0">
           <CardHeader className="text-center items-center flex flex-col">
             <input
               type="file"

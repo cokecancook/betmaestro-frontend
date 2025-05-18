@@ -10,7 +10,8 @@ import dummyDataJson from '@/data/dummy.json'; // Import as a module
 
 type Theme = 'light' | 'dark';
 
-const PROFILE_IMAGE_STORAGE_KEY = 'betMaestroProfileImage'; // Make key available
+const PROFILE_IMAGE_STORAGE_KEY = 'betMaestroProfileImage';
+const REAL_USER_BALANCE_KEY = 'betMaestroRealUserBalance'; // Key for real user balance
 
 interface AppContextType {
   user: User | null;
@@ -102,8 +103,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       } else {
         const realUserName = localStorage.getItem('betMaestroUserName') || 'User';
         setUser({ id: 'default-user', name: realUserName, plan: 'basic' });
-        setBalance(1000); 
-        setPlacedBets([]); // Initially empty, will be sorted if bets are added
+        const storedRealUserBalance = localStorage.getItem(REAL_USER_BALANCE_KEY);
+        if (storedRealUserBalance) {
+          setBalance(parseFloat(storedRealUserBalance));
+        } else {
+          // Default to 500 if not found (e.g., first login, or localStorage cleared)
+          setBalance(500); 
+        }
+        setPlacedBets([]); // For now, real user bets are not persisted
       }
       setIsLoggedIn(true);
     }
@@ -155,7 +162,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       loggedInUserName = 'Real User'; 
       setUser({ id: 'real-user', name: loggedInUserName, plan: 'basic' });
       setBalance(500); 
-      setPlacedBets([]); // Initially empty, will be sorted if bets are added
+      localStorage.setItem(REAL_USER_BALANCE_KEY, '500'); // Persist initial balance
+      setPlacedBets([]); 
       setUseDummyData(false);
       localStorage.setItem('betMaestroUseDummy', 'false');
       const realUserProfileImage = localStorage.getItem(PROFILE_IMAGE_STORAGE_KEY);
@@ -181,6 +189,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.removeItem('betMaestroLoggedIn');
     localStorage.removeItem('betMaestroUseDummy');
     localStorage.removeItem('betMaestroUserName');
+    localStorage.removeItem(REAL_USER_BALANCE_KEY); // Clear real user balance
+    localStorage.removeItem(PROFILE_IMAGE_STORAGE_KEY); // Clear profile image to avoid showing previous user's image
     setIsLoading(false);
     router.push('/login');
   }, [router]);
@@ -190,11 +200,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const rechargeWallet = (amount: number) => {
-    setBalance(prevBalance => prevBalance + amount);
+    setBalance(prevBalance => {
+      const newBalance = prevBalance + amount;
+      if (!useDummyData) {
+        localStorage.setItem(REAL_USER_BALANCE_KEY, newBalance.toString());
+      }
+      return newBalance;
+    });
   };
 
   const updateBalance = (newBalance: number) => {
     setBalance(newBalance);
+    if (!useDummyData) {
+      localStorage.setItem(REAL_USER_BALANCE_KEY, newBalance.toString());
+    }
   };
 
   const setPlan = (plan: 'basic' | 'premium') => {
