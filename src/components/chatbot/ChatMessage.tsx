@@ -11,11 +11,11 @@ import { useAppContext } from '@/contexts/AppContext'; // Added import
 
 interface ChatMessageProps {
   message: ChatMessageType;
-  onOptionClick?: (value: string) => void;
+  onOptionClick?: (option: { label: string; value: string }) => void;
 }
 
 const ChatMessage: React.FC<ChatMessageProps> = ({ message, onOptionClick }) => {
-  const { theme } = useAppContext(); // Added to get current theme
+  const { theme } = useAppContext();
   const isAI = message.sender === 'ai';
 
   const renderStrategy = (strategy: GenerateBettingStrategyOutput) => (
@@ -45,11 +45,11 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onOptionClick }) => 
   );
 
   return (
-    <div className={`flex items-end space-x-3 ${isAI ? '' : 'justify-end'} mb-6`}> {/* Increased mb from 4 to 6 */}
+    <div className={`flex items-end space-x-3 ${isAI ? '' : 'justify-end'} mb-6`}>
       {isAI && (
         <Avatar className="h-8 w-8 shrink-0 self-start mt-1">
           <AvatarFallback className="bg-orange-500">
-            <Bot size={20} className={theme === 'light' ? 'text-white' : 'text-black'} /> {/* Corrected conditional icon color */}
+            <Bot size={20} className={theme === 'light' ? 'text-white' : 'text-black'} />
           </AvatarFallback>
         </Avatar>
       )}
@@ -74,7 +74,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onOptionClick }) => 
                     key={option.value}
                     variant={isAI ? "outline" : "secondary"}
                     size="sm"
-                    onClick={() => onOptionClick && onOptionClick(option.value)}
+                    onClick={() => onOptionClick && onOptionClick(option)}
                     className={isAI ? "border-primary text-primary hover:bg-primary/10" : "bg-primary-foreground/20 hover:bg-primary-foreground/30 text-primary"}
                   >
                     {option.label}
@@ -88,7 +88,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onOptionClick }) => 
       {!isAI && (
         <Avatar className="h-8 w-8 shrink-0 self-start mt-1">
           <AvatarFallback className="bg-primary">
-            <User size={20} className={theme === 'light' ? 'text-primary-foreground' : 'text-background'} /> {/* Conditional icon color */}
+            <User size={20} className={theme === 'light' ? 'text-primary-foreground' : 'text-background'} />
           </AvatarFallback>
         </Avatar>
       )}
