@@ -131,6 +131,14 @@ export default function MyBetsPage() {
                     <span className="text-muted-foreground">Odds:</span>
                     <span>{bet.odds.toFixed(2)}</span>
                   </div>
+                   {(!bet.betResult || bet.betResult === 'pending') && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Estimated Gain:</span>
+                      <span className="font-semibold text-blue-500"> {/* Or another color for pending */}
+                        {formatCurrency((bet.betAmount * bet.odds) - bet.betAmount)}
+                      </span>
+                    </div>
+                   )}
                    {bet.betResult === 'lost' ? (
                      <div className="flex justify-between">
                        <span className="text-muted-foreground">Gain/Loss:</span>
