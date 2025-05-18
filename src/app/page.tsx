@@ -6,11 +6,11 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useAppContext } from '@/contexts/AppContext';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '@/components/ui/button'; // Added import
+import { Button } from '@/components/ui/button';
 
 export default function SplashPage() {
   const router = useRouter();
-  const { isLoading } = useAppContext(); // Removed isLoggedIn as it's not used for direct navigation anymore
+  const { isLoading } = useAppContext(); 
 
   // Removed useEffect for automatic redirection
 
@@ -30,20 +30,24 @@ export default function SplashPage() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 animate-fadeIn">
-      <div className="mb-8">
+      <div className="mb-8 shadow-[0_0_35px_0px_rgba(251,146,60,0.35)] rounded-[400px]">
         <Image
           src="/betmaestro-logo2.png"
           alt="BetMaestro Logo"
           width={300}
           height={300}
-          className="rounded-[400px] shadow-2xl"
-          priority // Important for LCP on a splash screen
+          className="rounded-[400px]"
+          priority 
           data-ai-hint="basketball brain"
         />
       </div>
       <p className="text-2xl font-semibold text-foreground">BetMaestro</p>
       <p className="text-lg text-muted-foreground mb-8">Your AI Betting Assistant</p>
-      <Button onClick={handleContinue} size="lg" className="bg-secondary hover:bg-secondary/90 text-primary-foreground">
+      <Button 
+        onClick={handleContinue} 
+        size="lg" 
+        className="bg-orange-500 hover:bg-orange-600 text-primary-foreground"
+      >
         Continue
       </Button>
     </div>
