@@ -1,7 +1,11 @@
 
 # BetMaestro Frontend
 
-This is a Next.js vibecoded frontend for BetMaestro. The app currently returns a dummy betting strategy and is **not connected to any cloud backend or live architecture**. The cloud deployment is no longer active, so all betting strategies are generated locally from static data.
+This is a Next.js vibe-coded frontend for BetMaestro. The app currently returns a dummy betting strategy and is **not connected to any cloud backend or live architecture**. The cloud deployment is no longer active, so all betting strategies are generated locally from static data.
+
+<img width="1137" height="639" alt="betmaestro" src="https://github.com/user-attachments/assets/aa05de71-18f4-4cb3-82e1-040d1badf1ca" />
+
+---
 
 ## Getting Started
 
